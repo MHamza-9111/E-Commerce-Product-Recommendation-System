@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<div class="auth-shell" data-reveal>
+    <section class="auth-visual" aria-labelledby="register-welcome">
+        <div>
+            <span class="hero-kicker"><span class="hero-kicker-dot" aria-hidden="true"></span> Join Cartify</span>
+            <h1 class="mt-4 mb-3" id="register-welcome">Create a profile that makes shopping feel personal.</h1>
+            <p class="lead mb-0">A free account unlocks tailored product suggestions, verified reviews, cart management and simple order tracking.</p>
+        </div>
+
+        <div>
+            <div class="auth-feature">
+                <span class="auth-feature-mark">01</span>
+                <span>Explore more than 100 products with smart filters</span>
+            </div>
+            <div class="auth-feature">
+                <span class="auth-feature-mark">02</span>
+                <span>Get better recommendations as you shop</span>
+            </div>
+            <div class="auth-feature">
+                <span class="auth-feature-mark">03</span>
+                <span>Keep purchases, reviews and details in one place</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="auth-form-panel">
+        <span class="auth-eyebrow mb-2">Free customer account</span>
+        <h2 class="mb-2">Start shopping smarter</h2>
+        <p class="text-muted mb-4">It takes less than a minute. Enter your details below to create your account.</p>
+
+        <form method="POST" data-submit-label="Creating your account…">
+            <div class="mb-3">
+                <label class="form-label" for="register-name">Full name</label>
+                <div class="input-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    <input id="register-name" type="text" name="name" class="form-control" placeholder="Your full name" autocomplete="name" value="{{ request.form.get('name', '') }}" minlength="2" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="register-email">Email address</label>
+                <div class="input-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="m4 6 8 6 8-6"/></svg>
+                    <input id="register-email" type="email" name="email" class="form-control" placeholder="you@example.com" autocomplete="email" value="{{ request.form.get('email', '') }}" required>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label" for="register-password">Password</label>
+                <div class="input-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                    <input id="register-password" type="password" name="password" class="form-control" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" data-password-input required>
+                    <button class="password-toggle" type="button" data-password-toggle="register-password" aria-label="Show password">Show</button>
+                </div>
+                <div class="form-text">Use at least 6 characters. A longer, unique password is safer.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Create my account</button>
+        </form>
+
+        <div class="auth-divider">Already a member?</div>
+        <a class="btn btn-outline-primary w-100" href="{{ url_for('login') }}">Sign in instead</a>
+
+        <p class="text-muted text-center mt-3 mb-0" style="font-size:.62rem;line-height:1.55;">By creating an account, you agree to use this academic demonstration responsibly.</p>
+    </section>
+</div>
+{% endblock %}

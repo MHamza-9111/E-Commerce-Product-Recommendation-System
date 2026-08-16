@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}Admin Analytics{% endblock %}
+
+{% block content %}
+<div class="section-heading mt-0">
+    <div>
+        <h2 class="mb-1">Analytics</h2>
+        <p class="text-muted mb-0">Sales, user activity and product performance.</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-dark">Dashboard</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-label">Active Users</div>
+            <div class="kpi-value">{{ active_users }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-label">Banned Users</div>
+            <div class="kpi-value">{{ banned_users }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-label">Reviews</div>
+            <div class="kpi-value">{{ total_reviews }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-label">Avg Rating</div>
+            <div class="kpi-value">{{ "%.1f"|format(average_review_rating) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="shop-surface p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Sales Report</h4>
+                <span class="badge badge-soft">Last 14 sale days</span>
+            </div>
+            {% if daily_sales %}
+                <canvas id="salesChart" height="130"></canvas>
+            {% else %}
+                <p class="mb-0 text-muted">No sales data yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="shop-surface p-4 h-100">
+            <h4 class="mb-3">Category Revenue</h4>
+            {% if category_sales %}
+                <canvas id="categoryChart" height="210"></canvas>
+            {% else %}
+                <p class="mb-0 text-muted">No category sales yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="shop-surface p-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Product Performance Analysis</h4>
+        <span class="badge badge-soft">Top 12 products</span>
+    </div>
+    {% if product_performance %}
+        <canvas id="productChart" height="105" class="mb-4"></canvas>
+    {% endif %}
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Sold</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Reviews</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in product_performance %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="fw-semibold">{{ product.name }}</a><br>
+                        <span class="text-muted small">{{ product.brand }}</span>
+                    </td>
+                    <td>{{ product.category }}</td>
+                    <td>{{ product.units_sold }}</td>
+                    <td>{{ product.order_count }}</td>
+                    <td class="price">Rs {{ "%.2f"|format(product.revenue) }}</td>
+                    <td>{{ product.review_count }}</td>
+                    <td>{{ "%.1f"|format(product.rating) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7">No product performance data yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-5">
+        <div class="shop-surface p-4 h-100">
+            <h4 class="mb-3">User Activity Report</h4>
+            {% if mongo_available and activity_summary %}
+                <canvas id="activityChart" height="210"></canvas>
+            {% elif mongo_available %}
+                <p class="mb-0 text-muted">No activity has been logged yet.</p>
+            {% else %}
+                <p class="mb-0 text-muted">MongoDB is not available, so activity reports are currently offline.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="shop-surface p-4 h-100">
+            <h4 class="mb-3">Most Active Users</h4>
+            {% if active_user_events %}
+                <canvas id="activeUsersChart" height="260"></canvas>
+            {% else %}
+                <p class="mb-0 text-muted">No user events yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="shop-surface p-4 h-100">
+            <h4 class="mb-3">Recent Activity</h4>
+            {% for item in recent_activities %}
+                <div class="border-bottom py-2">
+                    <div class="fw-semibold">{{ item.action|replace("_", " ")|title }}</div>
+                    <div class="text-muted small">
+                        User {{ item.user_id or "Guest" }}
+                        {% if item.product_id %} | Product #{{ item.product_id }}{% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <p class="mb-0 text-muted">No recent activity to show.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if daily_sales or category_sales or product_performance or activity_summary or active_user_events %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const salesData = {{ daily_sales|tojson }};
+    const categoryData = {{ category_sales|tojson }};
+    const productData = {{ product_performance|tojson }};
+    const activityData = {{ activity_summary|tojson }};
+    const activeUsersData = {{ active_user_events|tojson }};
+
+    const currencyTick = function (value) {
+        return "Rs " + Number(value || 0).toLocaleString();
+    };
+
+    const chartColors = {
+        brand:      "#FF8243",   /* Mango Tango */
+        price:      "#26619C",   /* Lapis Lazuli */
+        accent:     "#FFAE42",   /* Yellow Orange */
+        green:      "#7BB661",   /* Bud Green */
+        muted:      "#6b7280",
+        softBrand:  "rgba(255,130,67,0.13)",
+        softAccent: "rgba(255,174,66,0.18)",
+        softPrice:  "rgba(38,97,156,0.12)"
+    };
+
+    Chart.defaults.font.family = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    Chart.defaults.color = "#6b7280";
+
+    if (document.getElementById("salesChart")) {
+        new Chart(document.getElementById("salesChart"), {
+            type: "line",
+            data: {
+                labels: salesData.map(item => item.sale_date),
+                datasets: [
+                    {
+                        label: "Revenue",
+                        data: salesData.map(item => Number(item.revenue || 0)),
+                        borderColor: chartColors.brand,
+                        backgroundColor: chartColors.softBrand,
+                        fill: true,
+                        tension: 0.35,
+                        yAxisID: "y"
+                    },
+                    {
+                        label: "Orders",
+                        data: salesData.map(item => Number(item.order_count || 0)),
+                        borderColor: chartColors.price,
+                        backgroundColor: chartColors.softPrice,
+                        tension: 0.35,
+                        yAxisID: "y1"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: "index", intersect: false },
+                plugins: { legend: { position: "bottom" } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: currencyTick } },
+                    y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    if (document.getElementById("categoryChart")) {
+        new Chart(document.getElementById("categoryChart"), {
+            type: "doughnut",
+            data: {
+                labels: categoryData.map(item => item.category),
+                datasets: [{
+                    data: categoryData.map(item => Number(item.revenue || 0)),
+                    backgroundColor: ["#FF8243","#26619C","#FFAE42","#7BB661","#e06830","#1e4f82","#c47d0a","#5f9448"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: "bottom" },
+                    tooltip: { callbacks: { label: ctx => ctx.label + ": " + currencyTick(ctx.parsed) } }
+                },
+                cutout: "62%"
+            }
+        });
+    }
+
+    if (document.getElementById("productChart")) {
+        new Chart(document.getElementById("productChart"), {
+            type: "bar",
+            data: {
+                labels: productData.map(item => item.name),
+                datasets: [
+                    {
+                        label: "Revenue",
+                        data: productData.map(item => Number(item.revenue || 0)),
+                        backgroundColor: chartColors.brand,
+                        yAxisID: "y"
+                    },
+                    {
+                        label: "Units Sold",
+                        data: productData.map(item => Number(item.units_sold || 0)),
+                        backgroundColor: chartColors.price,
+                        yAxisID: "y1"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: "bottom" } },
+                scales: {
+                    x: { ticks: { maxRotation: 45, minRotation: 25 } },
+                    y: { beginAtZero: true, ticks: { callback: currencyTick } },
+                    y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    if (document.getElementById("activityChart")) {
+        new Chart(document.getElementById("activityChart"), {
+            type: "bar",
+            data: {
+                labels: activityData.map(item => String(item._id || "Unknown").replaceAll("_", " ")),
+                datasets: [{
+                    label: "Events",
+                    data: activityData.map(item => Number(item.count || 0)),
+                    backgroundColor: chartColors.accent
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    }
+
+    if (document.getElementById("activeUsersChart")) {
+        new Chart(document.getElementById("activeUsersChart"), {
+            type: "bar",
+            data: {
+                labels: activeUsersData.map(item => "User #" + item._id),
+                datasets: [{
+                    label: "Events",
+                    data: activeUsersData.map(item => Number(item.events || 0)),
+                    backgroundColor: chartColors.green
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

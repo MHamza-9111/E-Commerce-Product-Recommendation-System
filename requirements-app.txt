@@ -1,0 +1,23 @@
+# Core Flask stack
+Flask==3.1.3
+flask-cors==6.0.2
+Jinja2==3.1.6
+Werkzeug==3.1.8
+itsdangerous==2.2.0
+click==8.3.2
+blinker==1.9.0
+
+# Database
+pyodbc==5.2.0
+pymongo==4.12.1
+
+# Auth & utilities
+python-dotenv==1.2.2
+Pillow==10.2.0
+
+# ML / recommendations
+scikit-learn==1.8.0
+numpy==2.3.3
+scipy==1.15.3
+joblib==1.5.3
+pandas==2.3.3   # required to unpickle user_item_matrix.pkl (collaborative model) — app crashed silently to SQL-only fallback without this

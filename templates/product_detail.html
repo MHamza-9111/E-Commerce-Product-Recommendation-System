@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% from "_components.html" import product_card with context %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0" style="font-size:.72rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('products', category=product.category) }}" class="text-decoration-none">{{ product.category }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+</nav>
+<div class="row shop-surface p-3 p-md-4 g-4 product-detail-shell">
+    <div class="col-lg-6">
+        {% set all_images = product_gallery_images %}
+
+        <!-- Amazon-style gallery -->
+        <style>
+        .amz-gallery { display: flex; gap: 12px; align-items: flex-start; }
+
+        /* Left vertical thumb strip */
+        .amz-thumbs { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .amz-thumb {
+            width: 68px; height: 68px;
+            border: 2px solid var(--shop-line);
+            border-radius: 8px; overflow: hidden;
+            cursor: pointer; background: var(--shop-soft);
+            transition: border-color 120ms, box-shadow 120ms;
+            flex-shrink: 0;
+        }
+        .amz-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; display: block; }
+        .amz-thumb:hover  { border-color: var(--shop-brand); }
+        .amz-thumb.active { border-color: var(--shop-brand); box-shadow: 0 0 0 1px var(--shop-brand); }
+
+        /* Right big image */
+        .amz-main-wrap { flex: 1; min-width: 0; }
+        .amz-main-box {
+            position: relative; overflow: hidden;
+            border-radius: var(--radius-md);
+            background: var(--shop-soft);
+            aspect-ratio: 1/1;
+        }
+        .amz-main-box img {
+            width: 100%; height: 100%;
+            object-fit: contain; display: block;
+            transition: opacity 100ms;
+        }
+        /* Zoom lens */
+        .amz-lens {
+            display: none; position: absolute;
+            width: 130px; height: 130px;
+            border: 2px solid var(--shop-brand);
+            border-radius: 6px;
+            background: rgba(var(--shop-brand-rgb),0.07);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mobile: thumbs below, horizontal scroll */
+        @media (max-width: 540px) {
+            .amz-gallery { flex-direction: column; }
+            .amz-thumbs { flex-direction: row; overflow-x: auto; width: 100%; padding-bottom: 4px; }
+            .amz-thumb { flex-shrink: 0; }
+        }
+        </style>
+
+        <div class="amz-gallery">
+            <!-- Thumb strip (left) -->
+            <div class="amz-thumbs">
+                {% for img in all_images %}
+                <div class="amz-thumb {% if loop.first %}active{% endif %}"
+                     data-src="{{ img }}"
+                     data-idx="{{ loop.index0 }}"
+                     onmouseenter="amzHover({{ loop.index0 }})"
+                     onclick="amzHover({{ loop.index0 }})">
+                    <img src="{{ img }}"
+                         alt="{{ product.name }} {{ loop.index }}"
+                         onerror="this.closest('.amz-thumb').style.display='none'">
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Main image (right) -->
+            <div class="amz-main-wrap">
+                <div class="amz-main-box"
+                     onmousemove="amzLensMove(event)"
+                     onmouseleave="amzLensHide()">
+                    <img id="amz-main"
+                         src="{{ all_images[0] }}"
+                         alt="{{ product.name }}"
+                         onerror="this.src='https://placehold.co/600x600/f1f5f9/94a3b8?text=No+Image'">
+                    <div id="amz-lens" class="amz-lens"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        var amzImgs = {{ all_images | tojson }};
+        var amzCur  = 0;
+
+        function amzHover(idx) {
+            if (idx === amzCur) return;
+            amzCur = idx;
+            var main = document.getElementById('amz-main');
+            main.style.opacity = '0.75';
+            main.src = amzImgs[idx];
+            main.onload = function() { main.style.opacity = '1'; };
+            document.querySelectorAll('.amz-thumb').forEach(function(t, i) {
+                t.classList.toggle('active', i === idx);
+            });
+        }
+
+        function amzLensMove(e) {
+            var box  = e.currentTarget;
+            var lens = document.getElementById('amz-lens');
+            var rect = box.getBoundingClientRect();
+            lens.style.display = 'block';
+            lens.style.left = (e.clientX - rect.left) + 'px';
+            lens.style.top  = (e.clientY - rect.top)  + 'px';
+        }
+        function amzLensHide() {
+            document.getElementById('amz-lens').style.display = 'none';
+        }
+        </script>
+    </div>
+    <div class="col-lg-6">
+        <span class="badge badge-soft mb-3">{{ product.category }}</span>
+        {% if product.get('stock', 100) < 1 %}
+            <span class="badge badge-oos ms-2">Out of Stock</span>
+        {% endif %}
+        <h2 class="fw-bold">{{ product.name }}</h2>
+        <p class="product-meta mb-2">{{ product.brand }}</p>
+        <h3 class="price mb-3">Rs {{ "%.2f"|format(product.price) }}</h3>
+        <div class="mb-3">
+            <span class="rating-stars" aria-label="{{ "%.1f"|format(product.rating) }} out of 5 stars">
+                {% for star in range(1, 6) %}
+                    {% if product.rating >= star %}&#9733;{% else %}<span class="empty-star">&#9733;</span>{% endif %}
+                {% endfor %}
+                <span class="text-muted ms-1">{{ "%.1f"|format(product.rating) }} ({{ reviews|length }} reviews)</span>
+            </span>
+        </div>
+        {% if product.get('stock', 100) > 0 and product.get('stock', 100) <= 10 %}
+            <div class="mb-2">
+                <span style="color:#b45309;font-size:0.82rem;font-weight:600;">⚠️ Only {{ product.stock }} left in stock — order soon</span>
+            </div>
+        {% endif %}
+        <hr>
+        <p class="fs-6">{{ product.description }}</p>
+
+        {% if session.role == 'admin' %}
+            <div class="alert alert-secondary mb-0">Admin view only. Use product management to edit this item.</div>
+        {% elif not session.user_id %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-5">Login to Add to Cart</a>
+        {% elif product.get('stock', 100) < 1 %}
+            <button class="btn btn-dark btn-lg px-5" disabled>Out of Stock</button>
+        {% else %}
+            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="d-grid d-sm-block">
+                <button type="submit" class="btn btn-success btn-lg px-5">🛒 Add to Cart</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recommendations with reason badges -->
+<section aria-labelledby="similar-products-heading">
+    <div class="section-heading">
+        <div>
+            <span class="section-eyebrow">Matched by similarity</span>
+            <h3 id="similar-products-heading">You may also like</h3>
+            <p class="section-heading-copy">Related choices based on category, brand and product features.</p>
+        </div>
+        <a href="{{ url_for('products', category=product.category) }}" class="btn btn-outline-primary btn-sm">Explore {{ product.category }}</a>
+    </div>
+    <div class="row g-3 g-xl-4">
+        {% for item in recommended %}
+            {{ product_card(item) }}
+        {% else %}
+            <div class="col-12"><div class="shop-surface p-4 text-center text-muted">No similar products found yet.</div></div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Reviews section -->
+<div class="row mt-4 g-4">
+    <div class="col-md-5">
+        <div class="shop-surface review-panel p-4">
+            <h4 class="mb-1">Write a Review</h4>
+            <p class="text-muted small mb-3">Share your experience with this product.</p>
+
+            {% if not session.user_id %}
+                <p class="mb-0"><a href="{{ url_for('login') }}" class="auth-link">Login</a> to write a review.</p>
+            {% elif session.role == 'admin' %}
+                <p class="mb-0 text-muted">Admins cannot write reviews.</p>
+            {% elif user_reviewed %}
+                <div class="p-3 rounded text-center" style="background:var(--shop-brand-light);border:1px solid rgba(var(--shop-brand-rgb),0.2);">
+                    <div style="font-size:1.5rem;">✅</div>
+                    <p class="mb-0 fw-600 mt-1">You have already reviewed this product.</p>
+                </div>
+            {% elif not user_purchased %}
+                <div class="p-3 rounded text-center" style="background:#f8fafc;border:1px solid var(--shop-line);">
+                    <div style="font-size:1.5rem;">🛒</div>
+                    <p class="mb-0 mt-1 text-muted" style="font-size:0.88rem;">You can review this product once your order is delivered.</p>
+                </div>
+            {% else %}
+            <form method="POST" action="{{ url_for('add_review', product_id=product.id) }}">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0">Your rating</label>
+                        <span class="text-muted small" data-rating-text>5 out of 5</span>
+                    </div>
+                    <div class="review-stars" aria-label="Choose a rating">
+                        <input type="radio" id="rating-5" name="rating" value="5" data-review-rating checked>
+                        <label for="rating-5" title="Excellent">&#9733;</label>
+                        <input type="radio" id="rating-4" name="rating" value="4" data-review-rating>
+                        <label for="rating-4" title="Good">&#9733;</label>
+                        <input type="radio" id="rating-3" name="rating" value="3" data-review-rating>
+                        <label for="rating-3" title="Average">&#9733;</label>
+                        <input type="radio" id="rating-2" name="rating" value="2" data-review-rating>
+                        <label for="rating-2" title="Poor">&#9733;</label>
+                        <input type="radio" id="rating-1" name="rating" value="1" data-review-rating>
+                        <label for="rating-1" title="Bad">&#9733;</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Comment</label>
+                    <textarea name="comment" class="form-control" rows="4" placeholder="What did you like or wish was better?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Submit Review</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="shop-surface p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Reviews</h4>
+                <span class="badge badge-soft">{{ reviews|length }} total</span>
+            </div>
+            {% for review in reviews %}
+            <div class="review-card mb-3">
+                <div class="d-flex align-items-start gap-3">
+                    <span class="review-avatar">{{ review.name[:1] }}</span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <strong>{{ review.name }}</strong>
+                            <small class="text-muted">{{ review.created_at.strftime('%d %b %Y') if review.created_at else '' }}</small>
+                        </div>
+                        <span class="rating-stars" aria-label="{{ review.rating }} out of 5 stars">
+                            {% for star in range(1, 6) %}
+                                {% if review.rating >= star %}&#9733;{% else %}<span class="empty-star">&#9733;</span>{% endif %}
+                            {% endfor %}
+                        </span>
+                        <p class="mb-0 mt-2">{{ review.comment }}</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <div style="font-size:2rem;">💬</div>
+                <p class="mb-0 mt-2">No reviews yet. Be the first to review this product!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

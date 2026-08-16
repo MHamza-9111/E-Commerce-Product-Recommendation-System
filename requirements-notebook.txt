@@ -1,0 +1,6 @@
+# Everything in requirements-app.txt, plus:
+pandas==2.3.3
+matplotlib==3.10.8
+seaborn==0.13.2
+ipykernel==7.2.0
+jupyterlab==4.5.7

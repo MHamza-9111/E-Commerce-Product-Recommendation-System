@@ -1,0 +1,46 @@
+<!-- ApBot floating shopping assistant -->
+<div class="apbot-shell"
+     id="apbot"
+     data-api-url="{{ url_for('chatbot_api') }}"
+     data-products-url="{{ url_for('products') }}"
+     data-orders-url="{{ url_for('order_history') }}"
+     data-checkout-url="{{ url_for('checkout') }}">
+    <section class="apbot-window" id="apbotWindow" aria-label="ApBot shopping assistant" hidden>
+        <div class="apbot-panel">
+            <header class="apbot-header">
+                <div class="apbot-header-info">
+                    <span class="apbot-avatar">AI</span>
+                    <span>
+                        <strong>ApBot</strong>
+                        <small><span class="apbot-online-dot"></span>AI shopping assistant</small>
+                    </span>
+                </div>
+                <button type="button" class="apbot-close" id="apbotClose" aria-label="Close chatbot">×</button>
+            </header>
+
+            <div class="apbot-messages" id="apbotMessages" aria-live="polite">
+                <div class="apbot-message apbot-message-bot">
+                    <div class="apbot-bubble">Hello! I’m ApBot. I can help you find products, get recommendations, track orders and open checkout.</div>
+                </div>
+            </div>
+
+            <div class="apbot-quick-actions">
+                <button type="button" class="apbot-quick-button" data-apbot-message="Recommend something for me">Recommendations</button>
+                <button type="button" class="apbot-quick-button" data-apbot-message="Where is my order?">Track order</button>
+                <button type="button" class="apbot-quick-button" data-apbot-message="Take me to checkout">Checkout</button>
+            </div>
+
+            <form class="apbot-form" id="apbotForm">
+                <input type="text" class="apbot-input" id="apbotInput" maxlength="500" placeholder="Ask ApBot anything..." autocomplete="off" required>
+                <button type="submit" class="apbot-send" id="apbotSend" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <button type="button" class="apbot-toggle" id="apbotToggle" aria-label="Open ApBot" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+        <span class="apbot-status" aria-hidden="true"></span>
+    </button>
+</div>

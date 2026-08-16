@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% from "_components.html" import product_card with context %}
+{% block title %}Product Catalog{% endblock %}
+
+{% block content %}
+<section class="catalog-hero" aria-labelledby="catalog-heading">
+    <div class="position-relative" style="z-index:1;">
+        <span class="hero-kicker"><span class="hero-kicker-dot" aria-hidden="true"></span> Explore the full collection</span>
+        <h1 class="mt-3 mb-2" id="catalog-heading">Find your next favourite.</h1>
+        <p class="mb-3">Search, compare and filter a curated catalog across electronics, home, sports, books and more.</p>
+        <span class="catalog-count">{{ products|length }} product{{ 's' if products|length != 1 else '' }} found</span>
+    </div>
+</section>
+
+<form method="GET" action="{{ url_for('products') }}" class="shop-surface filter-panel" aria-label="Product filters" data-reveal>
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+        <div class="filter-panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+            Refine your results
+        </div>
+        {% if query or category or brand or min_price is not none or max_price is not none or min_rating is not none %}
+            <a href="{{ url_for('products') }}" class="text-decoration-none" style="font-size:.7rem;font-weight:800;color:var(--shop-brand-dark);">Clear all filters</a>
+        {% endif %}
+    </div>
+
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label mb-1" for="catalog-search">Search</label>
+            <div class="input-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <input id="catalog-search" type="search" name="search" class="form-control" placeholder="Product or brand" value="{{ query or '' }}">
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label mb-1" for="catalog-category">Category</label>
+            <select id="catalog-category" name="category" class="form-select">
+                <option value="">All categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label mb-1" for="catalog-brand">Brand</label>
+            <input id="catalog-brand" type="text" name="brand" class="form-control" placeholder="Any brand" value="{{ brand or '' }}">
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label mb-1">Price range (Rs)</label>
+            <div class="d-flex gap-2">
+                <input type="number" name="min_price" class="form-control" min="0" step="1" placeholder="Min" value="{{ request.args.get('min_price', '') }}" aria-label="Minimum price">
+                <input type="number" name="max_price" class="form-control" min="0" step="1" placeholder="Max" value="{{ request.args.get('max_price', '') }}" aria-label="Maximum price">
+            </div>
+        </div>
+        <div class="col-lg-1 col-md-6">
+            <label class="form-label mb-1" for="catalog-rating">Rating</label>
+            <select id="catalog-rating" name="min_rating" class="form-select">
+                <option value="">Any</option>
+                {% for r in [4, 3, 2, 1] %}
+                <option value="{{ r }}" {% if request.args.get('min_rating')|string == r|string %}selected{% endif %}>{{ r }}+ ★</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label mb-1" for="catalog-sort">Sort by</label>
+            <select id="catalog-sort" name="sort" class="form-select">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A–Z</option>
+                <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: low to high</option>
+                <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: high to low</option>
+                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest rated</option>
+                <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>Newest first</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="filter-actions mt-3">
+        <button type="submit" class="btn btn-primary px-4">Apply filters</button>
+        <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">Reset</a>
+    </div>
+</form>
+
+<div class="results-bar">
+    <div>
+        <strong>{{ products|length }} result{{ 's' if products|length != 1 else '' }}</strong>
+        <span class="ms-2">Showing available products that match your choices</span>
+    </div>
+    <div class="d-none d-md-flex gap-2 flex-wrap justify-content-end">
+        {% if query %}<span class="active-filter">Search: {{ query }}</span>{% endif %}
+        {% if category %}<span class="active-filter">{{ category }}</span>{% endif %}
+        {% if brand %}<span class="active-filter">Brand: {{ brand }}</span>{% endif %}
+        {% if max_price is not none %}<span class="active-filter">Up to Rs {{ "%.0f"|format(max_price) }}</span>{% endif %}
+        {% if min_rating is not none %}<span class="active-filter">{{ "%.0f"|format(min_rating) }}+ stars</span>{% endif %}
+    </div>
+</div>
+
+<div class="row g-3 g-xl-4">
+    {% for product in products %}
+        {{ product_card(product) }}
+    {% else %}
+    <div class="col-12">
+        <div class="shop-surface p-5 text-center" data-reveal>
+            <span class="empty-state-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/><path d="M8.5 11h5"/></svg>
+            </span>
+            <h3 class="h5 fw-800 mt-3 mb-1">No matching products</h3>
+            <p class="text-muted mb-3" style="font-size:.82rem;">Try a broader search, remove a filter or explore the complete catalog.</p>
+            <a href="{{ url_for('products') }}" class="btn btn-primary">Clear filters</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

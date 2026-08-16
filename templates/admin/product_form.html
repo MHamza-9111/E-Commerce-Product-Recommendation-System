@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="section-heading mt-0">
+    <div>
+        <h2 class="mb-1">{{ title }}</h2>
+        <p class="text-muted mb-0">Fill in the product details below.</p>
+    </div>
+    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-dark">← Back to Products</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="shop-surface p-4 p-md-5">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{{ product.name if product else '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Brand <span class="text-danger">*</span></label>
+                        <input type="text" name="brand" class="form-control" value="{{ product.brand if product else '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                        <select name="category" id="categorySelect" class="form-select" required onchange="toggleCustomCategory()">
+                            <option value="">Select category…</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                            <option value="__custom__">+ Add new category…</option>
+                        </select>
+                        <input type="text" id="customCategoryInput" class="form-control mt-2" style="display:none;"
+                               placeholder="Type the new category name">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Price (Rs) <span class="text-danger">*</span></label>
+                        <input type="number" name="price" step="0.01" min="0" class="form-control" value="{{ product.price if product else '' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Rating</label>
+                        <input type="number" name="rating" min="1" max="5" step="0.1" class="form-control" value="{{ product.rating if product else '4.0' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Stock</label>
+                        <input type="number" name="stock" min="0" step="1" class="form-control" value="{{ product.stock if product else '100' }}">
+                    </div>
+
+                    <!-- IMAGE SECTION -->
+                    <div class="col-12">
+                        <hr class="my-1">
+                        <p class="fw-semibold mb-1">🖼️ Product Images</p>
+                        <p class="text-muted mb-3" style="font-size:0.82rem;">Upload multiple photos from your device, or add image URLs. First image is the main display image.</p>
+                    </div>
+
+                    <!-- Drag-and-drop multi upload zone -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Upload from Device <span class="text-muted fw-normal" style="font-size:0.8rem;">(select multiple at once)</span></label>
+                        <div id="dropZone" class="upload-drop-zone" onclick="document.getElementById('productImagesInput').click()">
+                            <div class="drop-icon">📁</div>
+                            <div class="drop-label">Click to browse or drag &amp; drop images here</div>
+                            <div class="drop-sub">PNG, JPG, WEBP, GIF · max 5 MB each · multiple allowed</div>
+                        </div>
+                        <input type="file" name="product_images" id="productImagesInput"
+                               accept="image/png,image/jpeg,image/gif,image/webp"
+                               multiple style="display:none;">
+                        <div id="filePreviewGrid" class="img-preview-grid mt-3"></div>
+
+                        {% if existing_gallery %}
+                        <div class="mt-3">
+                            <div class="text-muted small mb-2 fw-semibold">Current images ({{ existing_gallery|length }})</div>
+                            <div class="img-preview-grid">
+                                {% for img in existing_gallery %}
+                                <div class="img-preview-item">
+                                    <img src="{{ img }}" alt="Image {{ loop.index }}"
+                                         onerror="this.src='https://placehold.co/90x90/f1f5f9/94a3b8?text=?'">
+                                    {% if loop.first %}<span class="img-primary-badge">Main</span>{% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <p class="text-muted mt-1" style="font-size:0.75rem;">Uploading new files will replace local images. Editing URLs updates URL images.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Clean URL entry UI -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Image URLs <span class="text-muted fw-normal" style="font-size:0.8rem;">(add one at a time)</span></label>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="url" id="urlAddInput" class="form-control"
+                                   placeholder="https://example.com/product-image.jpg"
+                                   style="font-size:0.88rem;">
+                            <button type="button" class="btn btn-outline-primary px-3 flex-shrink-0" onclick="addUrl()">＋ Add</button>
+                        </div>
+                        <div id="urlTagList" class="url-tag-list"></div>
+                        <input type="hidden" name="image_urls_hidden" id="imageUrlsHidden"
+                               value="{{ product.image_url if product else '' }}">
+                        <input type="hidden" name="image_url" id="imageUrlPrimary"
+                               value="{{ (product.image_url or '').split(',')[0].strip() if product and product.image_url else '' }}">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+                        <textarea name="description" class="form-control" rows="4" required>{{ product.description if product else '' }}</textarea>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary px-5">💾 Save Product</button>
+                    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.upload-drop-zone {
+    border: 2px dashed var(--shop-line);
+    border-radius: var(--radius-md);
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 200ms, background 200ms;
+    background: var(--shop-soft);
+    user-select: none;
+}
+.upload-drop-zone:hover, .upload-drop-zone.drag-over {
+    border-color: var(--shop-brand);
+    background: rgba(var(--shop-brand-rgb),0.05);
+}
+.drop-icon { font-size: 2rem; margin-bottom: .4rem; }
+.drop-label { font-weight: 600; font-size: 0.92rem; color: var(--shop-ink); }
+.drop-sub { font-size: 0.77rem; color: var(--shop-muted); margin-top: 4px; }
+.img-preview-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.img-preview-item {
+    position: relative; width: 90px; height: 90px;
+    border-radius: 10px; overflow: hidden;
+    border: 2px solid var(--shop-line);
+    background: var(--shop-soft); flex-shrink: 0;
+}
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-item .remove-img {
+    position: absolute; top: 3px; right: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(0,0,0,0.55); color: #fff;
+    font-size: 0.7rem; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.img-preview-item .remove-img:hover { background: #dc2626; }
+.img-primary-badge {
+    position: absolute; bottom: 4px; left: 4px;
+    background: var(--shop-brand); color: #fff;
+    font-size: 0.6rem; font-weight: 800;
+    padding: 1px 6px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .04em;
+}
+.url-tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.url-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--shop-soft); border: 1px solid var(--shop-line);
+    border-radius: 20px; padding: 4px 10px 4px 8px;
+    font-size: 0.78rem; max-width: 340px;
+}
+.url-tag img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.url-tag .url-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--shop-muted); }
+.url-tag .remove-url { background: none; border: none; cursor: pointer; color: var(--shop-muted); font-size: 1rem; padding: 0; line-height: 1; }
+.url-tag .remove-url:hover { color: #dc2626; }
+.url-tag-first { border-color: var(--shop-brand); }
+.url-tag-first .url-text::before { content: "Main · "; font-weight: 700; color: var(--shop-brand); }
+</style>
+
+<script>
+// ── Custom category fallback ──
+function toggleCustomCategory() {
+    var select = document.getElementById('categorySelect');
+    var input = document.getElementById('customCategoryInput');
+    input.style.display = select.value === '__custom__' ? 'block' : 'none';
+}
+
+document.querySelector('form').addEventListener('submit', function (e) {
+    var select = document.getElementById('categorySelect');
+    var input = document.getElementById('customCategoryInput');
+    if (select.value === '__custom__') {
+        var typed = input.value.trim();
+        if (!typed) {
+            e.preventDefault();
+            input.focus();
+            return;
+        }
+        var opt = document.createElement('option');
+        opt.value = typed;
+        opt.textContent = typed;
+        opt.selected = true;
+        select.appendChild(opt);
+    }
+});
+
+// ── URL tag manager ──
+var urlList = [];
+
+(function initUrls() {
+    var hidden = document.getElementById('imageUrlsHidden').value.trim();
+    if (hidden) {
+        hidden.split(',').forEach(function(u) {
+            u = u.trim();
+            if (u) urlList.push(u);
+        });
+        renderUrlTags();
+    }
+})();
+
+function addUrl() {
+    var input = document.getElementById('urlAddInput');
+    var url = input.value.trim();
+    if (!url) return;
+    if (!url.startsWith('http')) { alert('Please enter a valid URL starting with http'); return; }
+    if (urlList.includes(url)) { input.value = ''; return; }
+    urlList.push(url);
+    renderUrlTags();
+    syncUrlHidden();
+    input.value = '';
+}
+
+function removeUrl(idx) {
+    urlList.splice(idx, 1);
+    renderUrlTags();
+    syncUrlHidden();
+}
+
+function renderUrlTags() {
+    var container = document.getElementById('urlTagList');
+    container.innerHTML = '';
+    urlList.forEach(function(url, i) {
+        var tag = document.createElement('div');
+        tag.className = 'url-tag' + (i === 0 ? ' url-tag-first' : '');
+        var shortUrl = url.length > 45 ? url.substring(0, 42) + '...' : url;
+        tag.innerHTML =
+            '<img src="' + url + '" onerror="this.style.display=\'none\'">' +
+            '<span class="url-text" title="' + url + '">' + shortUrl + '</span>' +
+            '<button type="button" class="remove-url" onclick="removeUrl(' + i + ')" title="Remove">×</button>';
+        container.appendChild(tag);
+    });
+}
+
+function syncUrlHidden() {
+    document.getElementById('imageUrlsHidden').value = urlList.join(',');
+    document.getElementById('imageUrlPrimary').value = urlList[0] || '';
+}
+
+document.getElementById('urlAddInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); addUrl(); }
+});
+
+// ── File drop zone ──
+var dropZone = document.getElementById('dropZone');
+var fileInput = document.getElementById('productImagesInput');
+var selectedFiles = [];
+
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('drag-over'); });
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFiles(Array.from(e.dataTransfer.files));
+});
+
+fileInput.addEventListener('change', function() {
+    handleFiles(Array.from(fileInput.files));
+});
+
+function handleFiles(files) {
+    files.forEach(function(file) {
+        if (!file.type.startsWith('image/')) return;
+        selectedFiles.push(file);
+    });
+    renderFilePreviews();
+    syncFileInput();
+}
+
+function removeFile(idx) {
+    selectedFiles.splice(idx, 1);
+    renderFilePreviews();
+    syncFileInput();
+}
+
+function syncFileInput() {
+    try {
+        var dt = new DataTransfer();
+        selectedFiles.forEach(function(f) { dt.items.add(f); });
+        fileInput.files = dt.files;
+    } catch(e) {}
+}
+
+function renderFilePreviews() {
+    var grid = document.getElementById('filePreviewGrid');
+    grid.innerHTML = '';
+    selectedFiles.forEach(function(file, i) {
+        var item = document.createElement('div');
+        item.className = 'img-preview-item';
+        var img = document.createElement('img');
+        img.alt = file.name;
+        var reader = new FileReader();
+        reader.onload = function(e) { img.src = e.target.result; };
+        reader.readAsDataURL(file);
+        item.appendChild(img);
+        if (i === 0) {
+            var badge = document.createElement('span');
+            badge.className = 'img-primary-badge';
+            badge.textContent = 'Main';
+            item.appendChild(badge);
+        }
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'remove-img'; btn.innerHTML = '✕';
+        btn.onclick = (function(idx) { return function() { removeFile(idx); }; })(i);
+        item.appendChild(btn);
+        grid.appendChild(item);
+    });
+}
+</script>
+{% endblock %}

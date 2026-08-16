@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Home{% endblock %} — Cartify</title>
+    <meta name="description" content="Cartify is a smart e-commerce experience with personalised product recommendations.">
+    <meta name="theme-color" content="#111827">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* ===== NEW PALETTE =====
+               Mango Tango   #FF8243  → primary buttons, CTAs, brand accents
+               Lapis Lazuli  #26619C  → prices, tags, badges, info highlights
+               Yellow Orange #FFAE42  → hover states, star ratings, warm accents
+               Bud Green     #7BB661  → cart button, success states
+            ============================= */
+            --shop-muted: #6b7280;
+            --shop-line: #e5e7eb;
+            --shop-brand: #FF8243;          /* Mango Tango  — primary */
+            --shop-brand-rgb: 255,130,67;   /* same as --shop-brand, for rgba() usage */
+            --shop-brand-dark: #e06830;     /* Mango Tango dark */
+            --shop-brand-light: #fff4ee;    /* Mango Tango tint */
+            --shop-accent: #FFAE42;         /* Yellow Orange — hover */
+            --shop-price: #26619C;          /* Lapis Lazuli  — prices/tags */
+            --shop-price-light: #eef4fb;    /* Lapis tint */
+            --shop-soft: #f9fafb;
+            --shop-ink: #111827;
+            --shop-card-bg: #ffffff;
+            --shop-nav-bg: rgba(17, 24, 39, 0.97);
+            --shop-danger: #dc2626;
+            --shop-green: #7BB661;          /* Bud Green — cart/success */
+            --shop-green-dark: #5f9448;     /* Bud Green dark */
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 2px 8px rgba(15,23,42,0.06);
+            --shadow-md: 0 8px 24px rgba(15,23,42,0.10);
+            --shadow-lg: 0 20px 48px rgba(15,23,42,0.14);
+            --shadow-hover: 0 24px 56px rgba(15,23,42,0.18);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--shop-ink);
+            background: #fafaf9;
+            min-height: 100vh;
+        }
+        ::selection { background: rgba(255,130,67,0.24); }
+
+        /* ===== NAVBAR ===== */
+        .shop-navbar {
+            background: var(--shop-nav-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .navbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            text-decoration: none;
+        }
+        .brand-mark {
+            width: 40px; height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-copy strong { color: #fff; font-size: 1.05rem; font-weight: 800; display: block; line-height: 1.1; }
+        .brand-copy small { color: rgba(255,255,255,0.5); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; display: block; }
+
+        .navbar .nav-link {
+            color: rgba(255,255,255,0.78) !important;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            padding: 0.45rem 0.85rem !important;
+            transition: color 150ms, background 150ms, transform 150ms;
+        }
+        .navbar .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.09); transform: translateY(-1px); }
+        .navbar .nav-link.active { color: #fff !important; background: rgba(var(--shop-brand-rgb),0.3); }
+
+        .cart-nav-btn {
+            position: relative;
+            color: rgba(255,255,255,0.8) !important;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 0.45rem 0.85rem !important;
+            font-size: 1.1rem;
+            transition: all 150ms;
+            background: rgba(255,255,255,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cart-nav-btn:hover { color: #fff !important; background: rgba(var(--shop-brand-rgb),0.35) !important; border-color: rgba(var(--shop-brand-rgb),0.55); transform: translateY(-1px); }
+        .cart-badge {
+            position: absolute;
+            top: -6px; right: -6px;
+            background: var(--shop-brand);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            min-width: 18px; height: 18px;
+            border-radius: 999px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px;
+            border: 2px solid var(--shop-nav-bg);
+            line-height: 1;
+        }
+
+        .user-chip {
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+            text-decoration: none;
+            transition: background 150ms, border-color 150ms, transform 150ms;
+            background: rgba(255,255,255,0.05);
+        }
+        .user-chip:hover { color: #fff; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.32); transform: translateY(-1px); }
+        .user-avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--shop-brand), var(--shop-brand-dark));
+            color: #fff;
+            font-size: 0.78rem; font-weight: 800;
+            text-transform: uppercase;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .user-name { display: block; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.88rem; }
+        .user-role { color: rgba(255,255,255,0.5); display: block; font-size: 0.68rem; text-transform: capitalize; }
+
+        /* ===== PAGE SHELL ===== */
+        .page-shell { padding-top: 2rem; padding-bottom: 3rem; }
+
+        /* ===== SECTION HEADINGS ===== */
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 2.2rem 0 1.2rem;
+        }
+        .section-heading h2, .section-heading h3 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 1.35rem;
+            color: var(--shop-ink);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-heading h2::before, .section-heading h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.2em;
+            border-radius: 4px;
+            background: var(--shop-brand);
+            flex-shrink: 0;
+        }
+
+        /* ===== SURFACES ===== */
+        .shop-surface {
+            background: var(--shop-card-bg);
+            border: 1px solid var(--shop-line);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+        .interactive-surface {
+            transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+        }
+        .interactive-surface:hover {
+            border-color: rgba(var(--shop-brand-rgb),0.3);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+        }
+
+        /* ===== PRODUCT CARDS ===== */
+        .product-card {
+            background: var(--shop-card-bg);
+            border: 1px solid var(--shop-line);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+            transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease, border-color 220ms ease;
+        }
+        .product-card:hover {
+            border-color: rgba(var(--shop-brand-rgb),0.4);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-6px);
+        }
+        .product-card .card-img-top {
+            background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%);
+            transition: transform 300ms ease;
+            width: 100%; height: 220px;
+            object-fit: contain;
+            padding: 1rem;
+        }
+        .product-card:hover .card-img-top { transform: scale(1.06); }
+
+        /* Quick buy overlay */
+        .product-card .quick-buy {
+            position: absolute;
+            bottom: 90px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 200ms ease, transform 200ms ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .product-card:hover .quick-buy {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .quick-buy-btn {
+            background: var(--shop-brand);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.45rem 1.4rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+            transition: opacity 150ms ease;
+        }
+        .quick-buy-btn:hover { opacity: 0.94; }
+
+        /* Recommendation reason badge — Mango Tango */
+        .rec-reason-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(var(--shop-brand-rgb),0.92);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            padding: 3px 7px;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+            z-index: 2;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-title { color: var(--shop-ink); font-weight: 700; font-size: 0.92rem; line-height: 1.3; margin-bottom: 0.2rem; }
+        .product-meta { color: var(--shop-muted); font-size: 0.8rem; }
+        /* Price → Lapis Lazuli */
+        .price { color: var(--shop-price); font-weight: 800; font-size: 1.05rem; }
+
+        /* ===== RATINGS — Yellow Orange stars ===== */
+        .rating-stars { color: var(--shop-accent); white-space: nowrap; font-size: 0.88rem; }
+        .rating-stars .empty-star { color: #d3d7de; }
+
+        /* ===== BUTTONS — semantic palette ===== */
+        /* Primary (Mango Tango) — View Details, main CTA */
+        .btn-primary {
+            background: var(--shop-brand) !important;
+            border-color: var(--shop-brand) !important;
+            color: #fff !important;
+            font-weight: 600;
+            transition: background 150ms, box-shadow 150ms;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: var(--shop-accent) !important;      /* Yellow Orange on hover */
+            border-color: var(--shop-accent) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(255,174,66,0.4) !important;
+        }
+        .btn-primary:active {
+            background: var(--shop-brand-dark) !important;
+            border-color: var(--shop-brand-dark) !important;
+        }
+
+        /* Success (Bud Green) — Add to Cart */
+        .btn-success {
+            background: var(--shop-green) !important;
+            border-color: var(--shop-green) !important;
+            color: #fff !important;
+            font-weight: 600;
+            transition: background 150ms, box-shadow 150ms;
+        }
+        .btn-success:hover, .btn-success:focus {
+            background: var(--shop-green-dark) !important;
+            border-color: var(--shop-green-dark) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(123,182,97,0.35) !important;
+        }
+
+        /* Outline variants */
+        .btn-outline-primary {
+            background: transparent !important;
+            border: 1.5px solid var(--shop-brand) !important;
+            color: var(--shop-brand) !important;
+            font-weight: 600;
+        }
+        .btn-outline-primary:hover {
+            background: var(--shop-accent) !important;
+            border-color: var(--shop-accent) !important;
+            color: #fff !important;
+        }
+        .btn-outline-secondary {
+            background: transparent !important;
+            border: 1.5px solid #94a3b8 !important;
+            color: #475569 !important;
+            font-weight: 600;
+        }
+        .btn-outline-secondary:hover {
+            background: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+        .btn-outline-danger {
+            background: transparent !important;
+            border: 1.5px solid var(--shop-danger) !important;
+            color: var(--shop-danger) !important;
+            font-weight: 600;
+        }
+        .btn-outline-danger:hover {
+            background: var(--shop-danger) !important;
+            color: #fff !important;
+        }
+        .btn-outline-dark {
+            background: transparent !important;
+            border: 1.5px solid var(--shop-ink) !important;
+            color: var(--shop-ink) !important;
+            font-weight: 600;
+        }
+        .btn-outline-dark:hover {
+            background: var(--shop-ink) !important;
+            color: #fff !important;
+        }
+        /* Lapis Lazuli outline — for price-related/info actions */
+        .btn-outline-info {
+            background: transparent !important;
+            border: 1.5px solid var(--shop-price) !important;
+            color: var(--shop-price) !important;
+            font-weight: 600;
+        }
+        .btn-outline-info:hover {
+            background: var(--shop-price) !important;
+            color: #fff !important;
+        }
+        .btn-danger {
+            background: var(--shop-danger) !important;
+            border-color: var(--shop-danger) !important;
+            color: #fff !important;
+            font-weight: 600;
+        }
+        .btn-dark {
+            background: var(--shop-ink) !important;
+            border-color: var(--shop-ink) !important;
+            color: #fff !important;
+            font-weight: 600;
+        }
+        .btn-dark:hover { background: #1e293b !important; }
+        .btn-light {
+            background: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: var(--shop-ink) !important;
+            font-weight: 600;
+        }
+        .btn-light:hover { background: #e2e8f0 !important; }
+        .btn-warning {
+            background: var(--shop-accent) !important;
+            border-color: var(--shop-accent) !important;
+            color: #fff !important;
+            font-weight: 600;
+        }
+
+        /* Quantity control inner buttons */
+        .quantity-control .btn-light {
+            background: transparent !important;
+            border: 0 !important;
+            color: var(--shop-ink) !important;
+            font-weight: 900;
+            box-shadow: none !important;
+        }
+        .quantity-control .btn-light:hover { background: var(--shop-soft) !important; }
+
+        /* ===== HERO CAROUSEL ===== */
+        .hero-panel { border-radius: var(--radius-lg); overflow: hidden; min-height: 380px; }
+        .carousel-hero-slide {
+            min-height: 400px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .carousel-hero-slide::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(100deg, rgba(5,8,15,0.95) 0%, rgba(var(--shop-brand-rgb),0.6) 55%, rgba(5,8,15,0.55) 100%);
+            z-index: 1;
+        }
+        .carousel-hero-slide > * { position: relative; z-index: 2; }
+        .carousel-hero-shop     { background-image: url("https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&auto=format&fit=crop"); }
+        .carousel-hero-trending { background-image: url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop"); }
+        .carousel-hero-recommend{ background-image: url("https://images.unsplash.com/photo-1556155092-490a1ba16284?w=1600&auto=format&fit=crop"); }
+        .carousel-hero-offer    { background-image: url("https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=1600&auto=format&fit=crop"); }
+        #homeCarousel .carousel-item { transition: transform 0.9s cubic-bezier(0.4,0,0.2,1); }
+        .carousel-hero-slide h1, .carousel-hero-slide h2, .carousel-hero-slide p,
+        .carousel-hero-slide .lead, .carousel-hero-slide .display-5,
+        .carousel-hero-slide span:not(.badge) { color: #ffffff !important; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+
+        /* ===== KPI CARDS ===== */
+        .kpi-card {
+            background: #fff;
+            border: 1px solid var(--shop-line);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: 1.2rem 1.4rem;
+            transition: transform 200ms, box-shadow 200ms;
+        }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .kpi-label { color: var(--shop-muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .kpi-value { font-size: clamp(1.4rem, 2vw, 2rem); font-weight: 900; line-height: 1.1; color: var(--shop-ink); }
+
+        /* ===== ADMIN STAT CARDS — FIX: use brand colors consistently ===== */
+        .stat-card {
+            border: 0;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        .stat-card::after {
+            background: rgba(255,255,255,0.14);
+            border-radius: 50%;
+            content: '';
+            height: 110px;
+            position: absolute;
+            right: -30px; top: -30px;
+            width: 110px;
+            pointer-events: none;
+        }
+        .stat-card-orange { background: var(--shop-brand); color: #fff; }          /* Mango Tango */
+        .stat-card-dark-orange { background: var(--shop-price); color: #fff; }     /* Lapis Lazuli */
+        .stat-card-ink { background: var(--shop-ink); color: #fff; }
+        .stat-card-green { background: var(--shop-green); color: #fff; }           /* Bud Green */
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar { border-radius: var(--radius-md); background: #fff; border: 1px solid var(--shop-line); box-shadow: var(--shadow-sm); }
+        .filter-bar .form-control, .filter-bar .form-select {
+            border-color: #e2e8f0;
+            border-radius: var(--radius-sm);
+            min-height: 42px;
+            font-size: 0.88rem;
+            transition: border-color 150ms, box-shadow 150ms;
+        }
+        .filter-bar .form-control:focus, .filter-bar .form-select:focus {
+            border-color: var(--shop-brand);
+            box-shadow: 0 0 0 3px rgba(var(--shop-brand-rgb),0.12);
+        }
+
+        /* ===== PRODUCT DETAIL ===== */
+        .detail-image { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: linear-gradient(160deg, #f8fafc, #f1f5f9); border-radius: var(--radius-md); transition: transform 300ms ease; cursor: zoom-in; }
+        .detail-image:hover { transform: scale(1.03); }
+        /* Badge-soft uses Lapis Lazuli for category/info tags */
+        .badge-soft { background: var(--shop-price-light); border: 1px solid rgba(38,97,156,0.25); color: var(--shop-price); font-weight: 700; border-radius: 6px; }
+        /* Card category badge also uses Lapis */
+        .card-cat-badge {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: var(--shop-price-light);
+            border: 1px solid rgba(38,97,156,0.2);
+            border-radius: 6px;
+            color: var(--shop-price);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        /* ===== OUT OF STOCK badge ===== */
+        .badge-oos { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 700; border-radius: 6px; font-size: 0.72rem; padding: 3px 8px; }
+
+        /* ===== QUANTITY CONTROL ===== */
+        .quantity-control {
+            display: inline-flex; align-items: center;
+            border: 2px solid var(--shop-line);
+            border-radius: 999px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .quantity-control input { border: 0; border-left: 1px solid var(--shop-line); border-right: 1px solid var(--shop-line); max-width: 56px; text-align: center; font-weight: 700; background: transparent; height: 38px; }
+
+        /* ===== CHECKOUT ===== */
+        .checkout-surface { background: #fff; border: 1px solid var(--shop-line); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 2rem; }
+        .checkout-surface .form-control:focus { border-color: var(--shop-brand); box-shadow: 0 0 0 3px rgba(var(--shop-brand-rgb),0.12); }
+
+        /* ===== REVIEWS ===== */
+        .review-panel { background: linear-gradient(145deg, rgba(var(--shop-brand-rgb),0.05), rgba(var(--shop-brand-rgb),0.02)), #fff; }
+        .review-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 0.2rem; }
+        .review-stars input { position: absolute; opacity: 0; pointer-events: none; }
+        .review-stars label { color: #d3d7de; cursor: pointer; font-size: 2rem; line-height: 1; transition: color 130ms ease, transform 130ms ease; }
+        .review-stars label:hover, .review-stars label:hover ~ label, .review-stars input:checked ~ label { color: var(--shop-accent); }
+        .review-stars label:hover { transform: translateY(-3px) scale(1.1); }
+        .review-card { background: #fff; border: 1px solid var(--shop-line); border-radius: 10px; padding: 1rem 1.1rem; transition: transform 160ms ease, box-shadow 160ms ease; }
+        .review-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .review-avatar { align-items: center; background: linear-gradient(135deg, var(--shop-brand-light), var(--shop-accent)); border-radius: 50%; color: var(--shop-brand-dark); display: inline-flex; font-weight: 800; height: 38px; justify-content: center; width: 38px; font-size: 0.9rem; flex-shrink: 0; }
+
+        /* ===== FLASH MESSAGES — FIX: visible, styled, dismissible ===== */
+        .flash-container { position: fixed; top: 72px; right: 1.2rem; z-index: 1060; display: flex; flex-direction: column; gap: 8px; max-width: 380px; }
+        .flash-toast {
+            background: #fff;
+            border-left: 4px solid var(--shop-brand);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            padding: 0.9rem 1.2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: slideIn 250ms ease forwards;
+        }
+        .flash-toast.flash-success { border-left-color: var(--shop-green); }
+        .flash-toast.flash-danger  { border-left-color: var(--shop-danger); }
+        .flash-toast.flash-info    { border-left-color: #0ea5e9; }
+        .flash-toast-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .flash-toast-body { flex: 1; font-size: 0.88rem; line-height: 1.5; color: var(--shop-ink); }
+        .flash-toast-close { background: none; border: none; cursor: pointer; color: var(--shop-muted); font-size: 1rem; padding: 0; line-height: 1; flex-shrink: 0; }
+        .flash-toast-close:hover { color: var(--shop-ink); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+        /* ===== REPORT BARS ===== */
+        .report-bar { background: var(--shop-brand-light); border-radius: 999px; height: 10px; overflow: hidden; }
+        .report-bar span { background: linear-gradient(90deg, var(--shop-brand), var(--shop-accent)); display: block; height: 100%; border-radius: 999px; }
+
+        /* ===== AUTH PAGES ===== */
+        .auth-shell { display: grid; grid-template-columns: minmax(0,1fr) minmax(360px,440px); min-height: calc(100vh - 180px); overflow: hidden; align-items: stretch; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+        .auth-visual { background: linear-gradient(135deg, rgba(13,17,23,0.93), rgba(var(--shop-brand-rgb),0.6)), url("https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=1400&auto=format&fit=crop") center/cover; color: #fff; display: flex; flex-direction: column; justify-content: space-between; min-height: 560px; padding: clamp(2rem,4vw,3.5rem); }
+        .auth-visual-register { background: linear-gradient(135deg, rgba(13,17,23,0.9), rgba(var(--shop-brand-rgb),0.6)), url("https://images.unsplash.com/photo-1481437156560-3205f6a55735?w=1400&auto=format&fit=crop") center/cover; }
+        .auth-form-panel { background: #fff; display: flex; flex-direction: column; justify-content: center; padding: clamp(1.5rem,4vw,3rem); }
+        .auth-eyebrow { color: var(--shop-brand); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+        .auth-feature { align-items: center; display: flex; gap: 0.7rem; margin-top: 0.9rem; }
+        .auth-feature-mark { align-items: center; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; flex: 0 0 auto; font-weight: 800; height: 32px; justify-content: center; width: 32px; }
+        .auth-form-panel .form-control { border-color: var(--shop-line); border-radius: 10px; min-height: 48px; font-size: 0.92rem; }
+        .auth-form-panel .form-control:focus { border-color: var(--shop-brand); box-shadow: 0 0 0 3px rgba(var(--shop-brand-rgb),0.15); }
+        .auth-link { color: var(--shop-brand); font-weight: 700; text-decoration: none; }
+        .auth-link:hover { color: var(--shop-brand-dark); text-decoration: underline; }
+
+        /* ===== PROFILE ===== */
+        .profile-photo-xl { border: 4px solid #fff; border-radius: 50%; box-shadow: var(--shadow-md); height: 118px; object-fit: cover; width: 118px; }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal { opacity: 0; transform: translateY(22px); transition: opacity 500ms ease, transform 500ms ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+
+        /* ===== BACK TO TOP ===== */
+        #back-to-top {
+            position: fixed; bottom: 24px; right: 24px;
+            width: 44px; height: 44px;
+            background: var(--shop-ink);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            opacity: 0; pointer-events: none;
+            transition: opacity 250ms, background 150ms;
+            z-index: 1050;
+        }
+        #back-to-top.show { opacity: 1; pointer-events: auto; }
+        #back-to-top:hover { background: var(--shop-brand); }
+
+        /* ===== FOOTER ===== */
+        .site-footer {
+            background: var(--shop-ink);
+            color: rgba(255,255,255,0.65);
+            padding: 3rem 0 1.5rem;
+            margin-top: 4rem;
+            font-size: 0.88rem;
+        }
+        .site-footer a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 150ms; }
+        .site-footer a:hover { color: #fff; }
+        .footer-brand strong { color: #fff; font-size: 1.1rem; font-weight: 800; }
+        .footer-brand p { color: rgba(255,255,255,0.45); font-size: 0.82rem; margin: 0.4rem 0 0; }
+        .footer-heading { color: #fff; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.9rem; }
+        .footer-links li { margin-bottom: 0.45rem; }
+        .footer-divider { border-color: rgba(255,255,255,0.1); margin: 1.5rem 0; }
+        .footer-bottom { color: rgba(255,255,255,0.35); font-size: 0.78rem; }
+
+        /* ===== MISC ===== */
+        .description-clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+
+        @media (max-width: 991.98px) {
+            .auth-shell { grid-template-columns: 1fr; }
+            .auth-visual { min-height: 220px; }
+            .product-card .quick-buy { display: none; }
+        }
+        @media (max-width: 575.98px) {
+            .page-shell { padding-top: 1.2rem; }
+            .hero-panel { border-radius: 12px; }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='storefront.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="page-{{ (request.endpoint or 'unknown')|replace('_', '-') }}">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="announcement-bar">
+        <div class="container d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="announcement-dot" aria-hidden="true"></span>
+                <span><span class="announcement-highlight">Smarter shopping starts here.</span> Recommendations shaped around you.</span>
+            </div>
+            <div class="announcement-perks" aria-label="Store benefits">
+                <span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+                    Free delivery
+                </span>
+                <span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    Secure checkout
+                </span>
+                <span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>
+                    Customer support
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <header class="site-header sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-dark shop-navbar" aria-label="Main navigation">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('index') }}" aria-label="Cartify home">
+                    <span class="brand-mark"><img src="{{ url_for('static', filename='logo.png') }}" width="46" height="46" alt=""></span>
+                    <span class="brand-copy">
+                        <strong>Cartify</strong>
+                        <small>Discover · Personalised · Smart</small>
+                    </span>
+                </a>
+
+                <form class="nav-search d-none d-lg-block" method="GET" action="{{ url_for('products') }}" role="search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                    <input class="form-control" type="search" name="search" value="{{ request.args.get('search', '') if request.endpoint == 'products' else '' }}" placeholder="Search 100+ products, brands and categories" aria-label="Search products">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </form>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Open navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse flex-grow-0" id="mainNav">
+                    <form class="nav-search d-lg-none" method="GET" action="{{ url_for('products') }}" role="search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                        <input class="form-control" type="search" name="search" placeholder="Search products" aria-label="Search products">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </form>
+
+                    <div class="navbar-nav ms-auto align-items-lg-center">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link {% if request.endpoint in ['products', 'product_detail'] %}active{% endif %}" href="{{ url_for('products') }}">Shop</a>
+
+                        {% if session.user_id %}
+                            {% if session.role == 'admin' %}
+                                <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin') %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                            {% else %}
+                                <a class="nav-link cart-nav-btn {% if request.endpoint == 'view_cart' %}active{% endif %}" href="{{ url_for('view_cart') }}" aria-label="Shopping cart">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20.4 8H6"/></svg>
+                                    {% set cart_count = session.get('cart', [])|sum(attribute='quantity') %}
+                                    {% if cart_count > 0 %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+                                    <span>Cart</span>
+                                </a>
+                            {% endif %}
+
+                            <div class="nav-item dropdown ms-lg-1 mt-2 mt-lg-0">
+                                <a class="user-chip dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    {% if session.profile_image %}
+                                        <img class="user-avatar" src="{{ url_for('static', filename=session.profile_image) }}" alt="{{ session.user_name }}">
+                                    {% else %}
+                                        <span class="user-avatar">{{ session.user_name[:1] }}</span>
+                                    {% endif %}
+                                    <span class="user-meta d-none d-sm-block">
+                                        <span class="user-name">{{ session.user_name }}</span>
+                                        <span class="user-role">{{ session.role }}</span>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">My profile</a></li>
+                                    {% if session.role == 'admin' %}
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard overview</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_products') }}">Manage products</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_orders') }}">Manage orders</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Manage users</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_reviews') }}">Manage reviews</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_reports') }}">Analytics</a></li>
+                                    {% else %}
+                                        <li><a class="dropdown-item" href="{{ url_for('order_history') }}">My orders</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('view_cart') }}">Shopping cart</a></li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Sign out</a></li>
+                                </ul>
+                            </div>
+                        {% else %}
+                            <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Sign in</a>
+                            <a class="btn-nav-primary ms-lg-1" href="{{ url_for('register') }}">Create account</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="category-rail">
+            <div class="container category-scroll" aria-label="Product categories">
+                <a class="category-link all-categories" href="{{ url_for('products') }}">All products</a>
+                <a class="category-link" href="{{ url_for('products', category='Electronics') }}">Electronics</a>
+                <a class="category-link" href="{{ url_for('products', category='Home & Living') }}">Home &amp; Living</a>
+                <a class="category-link" href="{{ url_for('products', category='Kitchen') }}">Kitchen</a>
+                <a class="category-link" href="{{ url_for('products', category='Sports') }}">Sports</a>
+                <a class="category-link" href="{{ url_for('products', category='Footwear') }}">Footwear</a>
+                <a class="category-link" href="{{ url_for('products', category='Books') }}">Books</a>
+                <a class="category-link" href="{{ url_for('products', category='Personal Care') }}">Personal Care</a>
+            </div>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container" id="flashContainer" aria-live="polite">
+            {% for category, message in messages %}
+            <div class="flash-toast flash-{{ category if category != 'message' else 'info' }}">
+                <span class="flash-toast-icon" aria-hidden="true">{% if category == 'success' %}✓{% elif category == 'danger' %}!{% else %}i{% endif %}</span>
+                <span class="flash-toast-body">{{ message }}</span>
+                <button class="flash-toast-close" onclick="this.parentElement.remove()" aria-label="Dismiss message">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="container page-shell" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-topline">
+            <div class="container">
+                <div class="row g-3">
+                    <div class="col-6 col-lg-3 footer-promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/></svg> Free delivery</div>
+                    <div class="col-6 col-lg-3 footer-promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Secure shopping</div>
+                    <div class="col-6 col-lg-3 footer-promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 12 4 4L21 2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Verified reviews</div>
+                    <div class="col-6 col-lg-3 footer-promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v20M2 12h20"/></svg> Smart recommendations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container footer-main">
+            <div class="row g-4 g-lg-5">
+                <div class="col-lg-4">
+                    <div class="footer-brand">
+                        <div class="footer-brand-lockup mb-3">
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                            <div><strong>Cartify</strong><small>Personalised shopping</small></div>
+                        </div>
+                        <p>Discover products with a shopping experience powered by content-based, collaborative and hybrid recommendations.</p>
+                        <div class="footer-tech mt-3"><span>Flask</span><span>SQL Server</span><span>MongoDB</span><span>Machine Learning</span></div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <p class="footer-heading">Shop</p>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{{ url_for('products') }}">All products</a></li>
+                        <li><a href="{{ url_for('products', category='Electronics') }}">Electronics</a></li>
+                        <li><a href="{{ url_for('products', category='Home & Living') }}">Home &amp; Living</a></li>
+                        <li><a href="{{ url_for('products', category='Sports') }}">Sports</a></li>
+                        <li><a href="{{ url_for('products', category='Books') }}">Books</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <p class="footer-heading">Account</p>
+                    <ul class="list-unstyled footer-links">
+                        {% if session.user_id %}
+                            <li><a href="{{ url_for('profile') }}">My profile</a></li>
+                            {% if session.role != 'admin' %}
+                                <li><a href="{{ url_for('order_history') }}">My orders</a></li>
+                                <li><a href="{{ url_for('view_cart') }}">My cart</a></li>
+                            {% endif %}
+                            <li><a href="{{ url_for('logout') }}">Sign out</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('login') }}">Sign in</a></li>
+                            <li><a href="{{ url_for('register') }}">Create account</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <p class="footer-heading">Built to help you choose better</p>
+                    <p style="color:rgba(255,255,255,.45);font-size:.76rem;line-height:1.75;max-width:390px;">Cartify combines product discovery, trusted reviews, inventory-aware checkout and explainable recommendations in one responsive e-commerce experience.</p>
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-light btn-sm mt-2">Explore the catalog</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container footer-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>© 2026 Cartify. Academic e-commerce project.</span>
+            <span>Designed for a simple, smarter shopping journey.</span>
+        </div>
+    </footer>
+
+    {% include "_chatbot_widget.html" %}
+    <button id="back-to-top" aria-label="Back to top" title="Back to top">↑</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='storefront.js') }}"></script>
+    <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

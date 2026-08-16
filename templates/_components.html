@@ -1,0 +1,53 @@
+{% macro product_card(product, column_class='col-sm-6 col-lg-4 col-xl-3', reveal=true) %}
+<div class="{{ column_class }}"{% if reveal %} data-reveal{% endif %}>
+    <article class="card product-card h-100">
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-media d-block" aria-label="View {{ product.name }}">
+            <img src="{{ product.image_url }}"
+                 alt="{{ product.name }}"
+                 loading="lazy"
+                 onerror="this.src='https://placehold.co/500x500/f3f4f6/98a2b3?text=No+Image'">
+            <span class="product-badge product-badge-category">{{ product.category }}</span>
+            {% if product.get('rec_reason') %}
+                <span class="product-badge product-badge-reason" title="{{ product.rec_reason }}">{{ product.rec_reason }}</span>
+            {% elif product.get('stock', 100) < 1 %}
+                <span class="product-badge product-badge-oos">Out of stock</span>
+            {% elif product.get('stock', 100) <= 10 %}
+                <span class="product-badge product-badge-stock">Only {{ product.stock }} left</span>
+            {% endif %}
+        </a>
+
+        <div class="card-body d-flex flex-column">
+            <p class="product-meta mb-1">{{ product.brand }}</p>
+            <h3 class="product-title mb-2">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a>
+            </h3>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="rating-stars" aria-label="{{ '%.1f'|format(product.rating) }} out of 5 stars">
+                    {% for star in range(1, 6) %}
+                        {% if product.rating >= star %}&#9733;{% else %}<span class="empty-star">&#9733;</span>{% endif %}
+                    {% endfor %}
+                </span>
+                <span class="text-muted" style="font-size:.66rem;">{{ "%.1f"|format(product.rating) }}</span>
+            </div>
+
+            <div class="d-flex align-items-end justify-content-between gap-2 mt-auto pt-1">
+                <div>
+                    <span class="d-block text-muted" style="font-size:.6rem;font-weight:700;">PRICE</span>
+                    <span class="price">Rs {{ "%.0f"|format(product.price) }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">Details</a>
+                    {% if session.user_id and session.role != 'admin' and product.get('stock', 100) > 0 %}
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="m-0">
+                        <button type="submit" class="btn btn-success icon-btn" title="Add {{ product.name }} to cart" aria-label="Add {{ product.name }} to cart">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20.4 8H6"/><path d="M12 9v4M10 11h4"/></svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </article>
+</div>
+{% endmacro %}

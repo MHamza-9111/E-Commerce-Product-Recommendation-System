@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders{% endblock %}
+
+{% block content %}
+<style>
+.order-status-badge { font-size:0.75rem; font-weight:800; padding:4px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:.05em; display:inline-flex; align-items:center; gap:4px; }
+.status-placed     { background:#fff4ee; color:#e06830; border:1px solid rgba(255,130,67,0.4); }
+.status-processing { background:#fff9ee; color:#c47d0a; border:1px solid rgba(255,174,66,0.4); }
+.status-shipped    { background:#eef4fb; color:#26619C; border:1px solid rgba(38,97,156,0.3); }
+.status-delivered  { background:#f0fdf4; color:#5f9448; border:1px solid rgba(123,182,97,0.4); }
+.status-cancelled  { background:#fef2f2; color:#b91c1c; border:1px solid rgba(239,68,68,0.4); }
+</style>
+
+<div class="section-heading mt-0">
+    <div>
+        <h2 class="mb-1">Manage Orders</h2>
+        <p class="text-muted mb-0">View and update order statuses.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <!-- Status filter -->
+        <form method="GET" action="{{ url_for('admin_orders') }}" class="d-flex gap-2" id="status-filter-form">
+            <select name="status" class="form-select form-select-sm" style="min-width:140px;" onchange="
+                var val = this.value;
+                if (!val) { window.location = '{{ url_for('admin_orders') }}'; }
+                else { this.form.submit(); }
+            ">
+                <option value="">All Statuses</option>
+                {% for s in ['Placed','Processing','Shipped','Delivered','Cancelled'] %}
+                <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-dark btn-sm">Dashboard</a>
+    </div>
+</div>
+
+{% if orders %}
+<div class="shop-surface overflow-hidden">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead style="background:var(--shop-soft);">
+                <tr>
+                    <th class="ps-4">#ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th class="pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td class="ps-4 fw-700">#{{ order.id }}</td>
+                    <td>
+                        <div class="fw-600">{{ order.user_name }}</div>
+                        <div class="text-muted small">{{ order.user_email }}</div>
+                    </td>
+                    <td>{{ order.item_count }} item{{ 's' if order.item_count != 1 else '' }}</td>
+                    <td class="price fw-700">Rs {{ "%.2f"|format(order.total_amount) }}</td>
+                    <td class="text-muted small">{{ order.order_date.strftime('%d %b %Y') if order.order_date else '—' }}</td>
+                    <td style="max-width:160px;">
+                        <span class="small text-muted">{{ order.address or '—' }}</span>
+                        {% if order.phone %}<br><span class="small">📞 {{ order.phone }}</span>{% endif %}
+                    </td>
+                    <td>
+                        {% set sc = {'Placed':'status-placed','Processing':'status-processing','Shipped':'status-shipped','Delivered':'status-delivered','Cancelled':'status-cancelled'} %}
+                        <span class="order-status-badge {{ sc.get(order.status, 'status-placed') }}" style="font-size:0.68rem;padding:3px 10px;">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="pe-4">
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" class="d-flex gap-2 align-items-center">
+                            <select name="status" class="form-select form-select-sm" style="min-width:130px;">
+                                {% for s in ['Placed','Processing','Shipped','Delivered','Cancelled'] %}
+                                <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-3 text-muted small ps-1">Showing {{ orders|length }} order{{ 's' if orders|length != 1 else '' }}{% if status_filter %} with status <strong>{{ status_filter }}</strong>{% endif %}.</div>
+{% else %}
+<div class="shop-surface p-5 text-center">
+    <div style="font-size:3rem;">📦</div>
+    <h5 class="mt-3 mb-1">No orders{% if status_filter %} with status "{{ status_filter }}"{% endif %}</h5>
+    <p class="text-muted mb-0">{% if status_filter %}<a href="{{ url_for('admin_orders') }}">Clear filter</a> to see all orders.{% else %}Orders will appear here once customers start placing them.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

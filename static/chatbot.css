@@ -1,0 +1,267 @@
+/* ===== APBOT CHATBOT ===== */
+.apbot-shell {
+    bottom: 78px;
+    position: fixed;
+    right: 22px;
+    z-index: 1200;
+}
+
+.apbot-toggle {
+    align-items: center;
+    background: linear-gradient(135deg, var(--shop-brand, #ff6b35), var(--shop-accent, #f6a609));
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 15px 35px rgba(255, 107, 53, .35);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    height: 58px;
+    justify-content: center;
+    position: relative;
+    transition: transform .2s ease, box-shadow .2s ease;
+    width: 58px;
+}
+
+.apbot-toggle:hover {
+    box-shadow: 0 20px 40px rgba(255, 107, 53, .45);
+    transform: translateY(-3px);
+}
+
+.apbot-toggle svg { height: 25px; width: 25px; }
+
+.apbot-status {
+    background: #22c55e;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    height: 14px;
+    position: absolute;
+    right: -2px;
+    top: -2px;
+    width: 14px;
+}
+
+.apbot-window {
+    background: #fff;
+    border: 1px solid var(--shop-line, #e4e7ec);
+    border-radius: 22px;
+    bottom: 72px;
+    box-shadow: 0 25px 70px rgba(16, 24, 40, .22);
+    height: 540px;
+    max-height: calc(100vh - 150px);
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    width: 370px;
+}
+
+.apbot-window[hidden] { display: none; }
+.apbot-panel { display: flex; flex-direction: column; height: 100%; }
+
+.apbot-header {
+    align-items: center;
+    background: radial-gradient(circle at 90% 0%, rgba(255, 107, 53, .35), transparent 150px), linear-gradient(135deg, #101828, #172b45);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    padding: 17px 18px;
+}
+
+.apbot-header-info { align-items: center; display: flex; gap: 11px; }
+
+.apbot-avatar {
+    align-items: center;
+    background: linear-gradient(135deg, var(--shop-brand, #ff6b35), var(--shop-accent, #f6a609));
+    border-radius: 13px;
+    display: flex;
+    font-size: 12px;
+    font-weight: 900;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+
+.apbot-header strong { display: block; font-size: 14px; }
+.apbot-header small {
+    align-items: center;
+    color: rgba(255, 255, 255, .62);
+    display: flex;
+    font-size: 10px;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+.apbot-online-dot { background: #4ade80; border-radius: 50%; height: 6px; width: 6px; }
+
+.apbot-close {
+    background: rgba(255, 255, 255, .09);
+    border: 0;
+    border-radius: 9px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 22px;
+    height: 32px;
+    line-height: 1;
+    width: 32px;
+}
+.apbot-close:hover { background: rgba(255, 255, 255, .17); }
+
+.apbot-messages {
+    background: radial-gradient(circle at 10% 5%, rgba(255, 107, 53, .04), transparent 180px), #f8fafc;
+    flex: 1;
+    overflow-y: auto;
+    padding: 17px;
+}
+
+.apbot-message { display: flex; margin-bottom: 12px; }
+.apbot-message-user { justify-content: flex-end; }
+.apbot-bubble {
+    border-radius: 15px;
+    font-size: 12px;
+    line-height: 1.55;
+    max-width: 82%;
+    padding: 10px 12px;
+    word-break: break-word;
+}
+
+.apbot-message-bot .apbot-bubble {
+    background: #fff;
+    border: 1px solid var(--shop-line, #e4e7ec);
+    border-bottom-left-radius: 5px;
+    box-shadow: 0 3px 12px rgba(16, 24, 40, .05);
+    color: var(--shop-ink, #101828);
+}
+
+.apbot-message-user .apbot-bubble {
+    background: var(--shop-brand, #ff6b35);
+    border-bottom-right-radius: 5px;
+    color: #fff;
+}
+
+.apbot-meta {
+    color: #98a2b3;
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.apbot-quick-actions {
+    background: #fff;
+    border-top: 1px solid var(--shop-line, #e4e7ec);
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 9px 13px;
+    scrollbar-width: none;
+}
+.apbot-quick-actions::-webkit-scrollbar { display: none; }
+
+.apbot-quick-button {
+    background: var(--shop-brand-light, #fff1eb);
+    border: 1px solid rgba(var(--shop-brand-rgb, 255, 107, 53), .3);
+    border-radius: 999px;
+    color: var(--shop-brand-dark, #df4f1d);
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 750;
+    padding: 6px 10px;
+}
+.apbot-quick-button:hover { background: var(--shop-brand, #ff6b35); color: #fff; }
+
+.apbot-form {
+    align-items: center;
+    background: #fff;
+    border-top: 1px solid var(--shop-line, #e4e7ec);
+    display: flex;
+    gap: 8px;
+    padding: 11px;
+}
+
+.apbot-input {
+    border: 1px solid #d0d5dd;
+    border-radius: 12px;
+    flex: 1;
+    font-family: inherit;
+    font-size: 12px;
+    min-height: 42px;
+    min-width: 0;
+    outline: none;
+    padding: 8px 12px;
+}
+.apbot-input:focus {
+    border-color: var(--shop-brand, #ff6b35);
+    box-shadow: 0 0 0 3px rgba(var(--shop-brand-rgb, 255, 107, 53), .1);
+}
+
+.apbot-send {
+    align-items: center;
+    background: var(--shop-brand, #ff6b35);
+    border: 0;
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex: 0 0 auto;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+.apbot-send:hover { background: var(--shop-brand-dark, #df4f1d); }
+.apbot-send:disabled { cursor: wait; opacity: .6; }
+.apbot-send svg { height: 17px; width: 17px; }
+
+.apbot-typing { align-items: center; display: inline-flex; gap: 4px; min-height: 18px; }
+.apbot-typing span {
+    animation: apbotTyping 1s infinite ease-in-out;
+    background: #98a2b3;
+    border-radius: 50%;
+    height: 5px;
+    width: 5px;
+}
+.apbot-typing span:nth-child(2) { animation-delay: .15s; }
+.apbot-typing span:nth-child(3) { animation-delay: .3s; }
+
+@keyframes apbotTyping {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+@media (max-width: 575px) {
+    .apbot-shell { bottom: 72px; right: 14px; }
+    .apbot-window {
+        bottom: 142px;
+        height: min(560px, calc(100vh - 165px));
+        left: 10px;
+        max-height: none;
+        position: fixed;
+        right: 10px;
+        width: auto;
+    }
+    .apbot-toggle { height: 54px; width: 54px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .apbot-toggle, .apbot-typing span { animation: none; transition: none; }
+}
+
+/* Intent action links */
+.apbot-action-row { margin-top: -6px; }
+.apbot-action {
+    align-items: center;
+    background: var(--shop-brand-light, #fff1eb);
+    border: 1px solid rgba(var(--shop-brand-rgb, 255, 107, 53), .28);
+    border-radius: 11px;
+    color: var(--shop-brand-dark, #df4f1d);
+    display: inline-flex;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 8px 11px;
+    text-decoration: none;
+    transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+.apbot-action:hover {
+    background: var(--shop-brand, #ff6b35);
+    color: #fff;
+    transform: translateY(-1px);
+}
