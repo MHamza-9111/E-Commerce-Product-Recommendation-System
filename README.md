@@ -1,4 +1,4 @@
-# Cartify — E-Commerce Product Recommendation System
+# ZiloCart — E-Commerce Product Recommendation System
 
 A Flask-based e-commerce project with personalized product recommendations, shopping cart, order management, and an admin dashboard.
 

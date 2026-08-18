@@ -1,4 +1,4 @@
-/* Cartify premium storefront layer
+/* ZiloCart premium storefront layer
    Loaded after the legacy inline styles so the existing templates keep working
    while the customer and admin experiences share one polished visual system. */
 
@@ -859,4 +859,212 @@ textarea.form-control { min-height: auto; }
     .checkout-progress { justify-content: space-between; padding: .85rem; }
     .checkout-step div { display: none; }
     .checkout-progress-line { flex: 1; margin: 0 .45rem; width: auto; }
+}
+
+/* ===== Production polish and icon system ===== */
+.ui-icon-sprite {
+    height: 0;
+    left: -9999px;
+    overflow: hidden;
+    position: absolute;
+    width: 0;
+}
+.ui-icon {
+    fill: none;
+    flex: 0 0 auto;
+    height: 1.1em;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9;
+    vertical-align: -.15em;
+    width: 1.1em;
+}
+.icon-label { align-items: center; display: inline-flex; gap: .45rem; }
+.icon-label .ui-icon { height: 16px; width: 16px; }
+.icon-tile {
+    align-items: center;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 12px;
+    display: inline-flex;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+.icon-tile .ui-icon { height: 20px; width: 20px; }
+
+/* Keep the back-to-top control clear of the assistant launcher. */
+#back-to-top { bottom: 22px; right: 92px; }
+
+/* Account page */
+.account-heading {
+    align-items: flex-end;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: space-between;
+}
+.account-heading h1 {
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    font-weight: 900;
+    letter-spacing: -.055em;
+    margin: .25rem 0 .35rem;
+}
+.account-heading p { color: var(--shop-muted); font-size: .82rem; margin: 0; }
+.account-identity-card {
+    background: #fff;
+    border: 1px solid var(--shop-line);
+    border-radius: 24px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    padding: 0 1.5rem 1.5rem;
+    position: sticky;
+    text-align: center;
+    top: 150px;
+}
+.account-identity-bg {
+    background:
+        radial-gradient(circle at 80% 5%, rgba(255, 107, 53, .38), transparent 9rem),
+        linear-gradient(135deg, #101828, #18324f);
+    height: 125px;
+    margin: 0 -1.5rem;
+}
+.account-avatar-wrap {
+    display: inline-block;
+    margin-top: -56px;
+    position: relative;
+}
+.account-avatar {
+    background: #fff;
+    border: 5px solid #fff;
+    border-radius: 22px;
+    box-shadow: 0 12px 30px rgba(16, 24, 40, .2);
+    display: flex;
+    height: 112px;
+    object-fit: cover;
+    width: 112px;
+}
+.account-avatar-fallback {
+    align-items: center;
+    background: linear-gradient(135deg, var(--shop-brand), var(--shop-accent));
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: 900;
+    justify-content: center;
+}
+.account-status-dot {
+    background: #19a66a;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    bottom: -2px;
+    height: 18px;
+    position: absolute;
+    right: -2px;
+    width: 18px;
+}
+.account-identity-card h2 { font-size: 1.25rem; font-weight: 900; letter-spacing: -.03em; margin: .9rem 0 .2rem; }
+.account-identity-card > p { color: var(--shop-muted); font-size: .75rem; margin-bottom: .75rem; overflow-wrap: anywhere; }
+.account-badges { display: flex; gap: .4rem; justify-content: center; }
+.account-badges span { background: #f2f4f7; border-radius: 999px; color: #475467; font-size: .62rem; font-weight: 800; padding: .35rem .6rem; }
+.account-badges .is-active { background: #eaf8f1; color: #147a50; }
+.account-summary { border-top: 1px solid var(--shop-line); margin-top: 1.3rem; padding-top: .6rem; text-align: left; }
+.account-summary > div { align-items: center; border-radius: 12px; display: flex; gap: .75rem; padding: .7rem .6rem; }
+.account-summary > div:hover { background: #f8fafc; }
+.account-summary .ui-icon { color: var(--shop-brand-dark); height: 19px; width: 19px; }
+.account-summary strong { display: block; font-size: .7rem; }
+.account-summary small { color: var(--shop-muted); display: block; font-size: .6rem; margin-top: 2px; }
+.account-form {
+    background: #fff;
+    border: 1px solid var(--shop-line);
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+.account-form-section { border-bottom: 1px solid var(--shop-line); padding: clamp(1.25rem, 3vw, 2rem); }
+.account-section-heading { align-items: center; display: flex; gap: .85rem; margin-bottom: 1.25rem; }
+.account-section-icon {
+    align-items: center;
+    background: var(--shop-brand-light);
+    border-radius: 12px;
+    color: var(--shop-brand-dark);
+    display: flex;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+.account-section-icon .ui-icon { height: 19px; width: 19px; }
+.account-section-heading h2 { font-size: .9rem; font-weight: 850; margin: 0 0 .12rem; }
+.account-section-heading p { color: var(--shop-muted); font-size: .67rem; margin: 0; }
+.profile-upload-box {
+    align-items: center;
+    background: #fafbfc;
+    border: 1px dashed #c8d0dc;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    gap: .85rem;
+    padding: 1rem;
+    transition: background .15s, border-color .15s;
+}
+.profile-upload-box:hover { background: var(--shop-brand-light); border-color: var(--shop-brand); }
+.profile-upload-icon { align-items: center; background: #fff; border: 1px solid var(--shop-line); border-radius: 11px; color: var(--shop-brand-dark); display: flex; height: 42px; justify-content: center; width: 42px; }
+.profile-upload-icon .ui-icon { height: 19px; width: 19px; }
+.profile-upload-box > span:nth-child(2) { flex: 1; }
+.profile-upload-box strong { display: block; font-size: .72rem; }
+.profile-upload-box small { color: var(--shop-muted); display: block; font-size: .62rem; margin-top: 3px; }
+.profile-upload-action { background: #fff; border: 1px solid var(--shop-line); border-radius: 9px; color: var(--shop-brand-dark); font-size: .65rem; font-weight: 800; padding: .45rem .65rem; }
+.profile-preview { align-items: center; background: #f8fafc; border-radius: 12px; display: flex; gap: .7rem; margin-top: .8rem; padding: .65rem; }
+.profile-preview img { border-radius: 10px; height: 52px; object-fit: cover; width: 52px; }
+.profile-preview strong { display: block; font-size: .68rem; }
+.profile-preview small { color: var(--shop-muted); display: block; font-size: .6rem; margin-top: 2px; }
+.account-form-footer { align-items: center; display: flex; gap: 1rem; justify-content: space-between; padding: 1rem 2rem; }
+.account-form-footer p { align-items: center; color: var(--shop-muted); display: flex; font-size: .63rem; gap: .4rem; margin: 0; }
+.account-form-footer .ui-icon { color: var(--shop-green); height: 15px; width: 15px; }
+
+/* Cleaner admin and data surfaces */
+.admin-nav { display: flex; flex-wrap: wrap; gap: .45rem; }
+.admin-nav .btn { align-items: center; display: inline-flex; gap: .4rem; }
+.admin-nav .ui-icon { height: 15px; width: 15px; }
+.stat-icon { align-items: center; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; display: flex; height: 42px; justify-content: center; width: 42px; }
+.stat-icon .ui-icon { height: 20px; width: 20px; }
+.panel-title { align-items: center; display: flex; font-size: .88rem; font-weight: 850; gap: .55rem; }
+.panel-title .ui-icon { color: var(--shop-brand); height: 18px; width: 18px; }
+
+@media (max-width: 991.98px) {
+    .account-identity-card { position: static; }
+}
+@media (max-width: 575.98px) {
+    #back-to-top { bottom: 18px; right: 82px; }
+    .account-heading { align-items: flex-start; flex-direction: column; }
+    .account-heading .d-flex { width: 100%; }
+    .account-heading .btn { flex: 1; }
+    .account-form-footer { align-items: stretch; flex-direction: column; padding: 1rem 1.25rem; }
+    .account-form-footer .btn { width: 100%; }
+    .profile-upload-action { display: none; }
+}
+.status-dot { background: currentColor; border-radius: 50%; display: inline-block; height: 6px; opacity: .72; width: 6px; }
+
+/* Category artwork */
+.category-card .category-card-mark {
+    color: var(--category-color, var(--shop-brand-dark)) !important;
+}
+.category-card-mark .ui-icon {
+    height: 23px;
+    stroke-width: 1.8;
+    width: 23px;
+}
+.category-card .category-arrow {
+    align-items: center;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    margin: 0;
+    right: .75rem;
+    top: .75rem;
+    width: 28px;
+}
+.category-arrow .ui-icon { height: 15px; width: 15px; }
+.category-card:hover .category-arrow {
+    color: var(--category-color, var(--shop-brand-dark)) !important;
+    transform: translateX(2px);
 }

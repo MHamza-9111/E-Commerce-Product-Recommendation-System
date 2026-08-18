@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Home{% endblock %} — Cartify</title>
-    <meta name="description" content="Cartify is a smart e-commerce experience with personalised product recommendations.">
+    <title>{% block title %}Home{% endblock %} — ZiloCart</title>
+    <meta name="description" content="ZiloCart is a smart e-commerce experience with personalised product recommendations.">
     <meta name="theme-color" content="#111827">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -623,6 +623,7 @@
     {% block head %}{% endblock %}
 </head>
 <body class="page-{{ (request.endpoint or 'unknown')|replace('_', '-') }}">
+    {% include "_icon_sprite.html" %}
     <a class="skip-link" href="#main-content">Skip to main content</a>
 
     <div class="announcement-bar">
@@ -651,10 +652,10 @@
     <header class="site-header sticky-top">
         <nav class="navbar navbar-expand-lg navbar-dark shop-navbar" aria-label="Main navigation">
             <div class="container">
-                <a class="navbar-brand" href="{{ url_for('index') }}" aria-label="Cartify home">
+                <a class="navbar-brand" href="{{ url_for('index') }}" aria-label="ZiloCart home">
                     <span class="brand-mark"><img src="{{ url_for('static', filename='logo.png') }}" width="46" height="46" alt=""></span>
                     <span class="brand-copy">
-                        <strong>Cartify</strong>
+                        <strong>ZiloCart</strong>
                         <small>Discover · Personalised · Smart</small>
                     </span>
                 </a>
@@ -780,7 +781,7 @@
                     <div class="footer-brand">
                         <div class="footer-brand-lockup mb-3">
                             <img src="{{ url_for('static', filename='logo.png') }}" alt="">
-                            <div><strong>Cartify</strong><small>Personalised shopping</small></div>
+                            <div><strong>ZiloCart</strong><small>Personalised shopping</small></div>
                         </div>
                         <p>Discover products with a shopping experience powered by content-based, collaborative and hybrid recommendations.</p>
                         <div class="footer-tech mt-3"><span>Flask</span><span>SQL Server</span><span>MongoDB</span><span>Machine Learning</span></div>
@@ -814,15 +815,15 @@
                 </div>
                 <div class="col-lg-4">
                     <p class="footer-heading">Built to help you choose better</p>
-                    <p style="color:rgba(255,255,255,.45);font-size:.76rem;line-height:1.75;max-width:390px;">Cartify combines product discovery, trusted reviews, inventory-aware checkout and explainable recommendations in one responsive e-commerce experience.</p>
+                    <p style="color:rgba(255,255,255,.45);font-size:.76rem;line-height:1.75;max-width:390px;">ZiloCart combines product discovery, trusted reviews, inventory-aware checkout and explainable recommendations in one responsive e-commerce experience.</p>
                     <a href="{{ url_for('products') }}" class="btn btn-outline-light btn-sm mt-2">Explore the catalog</a>
                 </div>
             </div>
         </div>
 
         <div class="container footer-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <span>© 2026 Cartify. Academic e-commerce project.</span>
-            <span>Designed for a simple, smarter shopping journey.</span>
+            <span>© 2026 ZiloCart. All rights reserved.</span>
+            <span>A simpler, smarter shopping experience.</span>
         </div>
     </footer>
 

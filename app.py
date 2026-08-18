@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import hashlib
 import os
+import re
 import secrets
 import pyodbc
 from dotenv import load_dotenv
@@ -458,7 +459,7 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
     if not product:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     if knn_content is None or tfidf_matrix is None or product_ids is None:
         # SQL fallback when model files are missing
@@ -471,14 +472,14 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
             products = rows_to_dicts(cursor)
         for p in products:
             p["image_url"] = resolve_product_image(p)
-            p["rec_reason"] = f"Same category as {product['name']}"
+            p["rec_reason"] = "More in this category"
         return products
     try:
         idx = product_ids.index(product["id"])
     except ValueError:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     # n_neighbors must not exceed matrix size; guard for very small catalogues
     n_neighbors = min(limit + 1, tfidf_matrix.shape[0])
@@ -487,7 +488,7 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
     if not recommended_ids:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -498,18 +499,18 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
         products = rows_to_dicts(cursor)
     for p in products:
         p["image_url"] = resolve_product_image(p)
-        p["rec_reason"] = f"Similar to {product['name']}"
+        p["rec_reason"] = "Similar pick"
     return products
 def get_collaborative_recommendations(user_id, limit=4):
     if knn_users is None or user_item_matrix is None:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     if user_id not in user_item_matrix.index:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     user_row_index = user_item_matrix.index.get_loc(user_id)
     user_vector = user_item_matrix.iloc[[user_row_index]]
@@ -529,7 +530,7 @@ def get_collaborative_recommendations(user_id, limit=4):
     if not sorted_recs:
         recs = get_trending_products(limit)
         for r in recs:
-            r["rec_reason"] = "Trending"
+            r["rec_reason"] = "Popular now"
         return recs
     recommended_ids = [pid for pid, score in sorted_recs]
     with get_db_connection() as conn:
@@ -541,7 +542,7 @@ def get_collaborative_recommendations(user_id, limit=4):
         products = rows_to_dicts(cursor)
     for p in products:
         p["image_url"] = resolve_product_image(p)
-        p["rec_reason"] = "Users like you bought this"
+        p["rec_reason"] = "Recommended for you"
     return products
 def get_personalized_recommendations(limit=4):
     """Homepage recommendations for the logged-in user.
@@ -581,13 +582,13 @@ def get_personalized_recommendations(limit=4):
     if last_product and len(recommendations) < limit:
         content_recs = get_content_based_recommendations(last_product, limit)
         for r in content_recs:
-            r["rec_reason"] = f"Because you viewed {last_product['name']}"
+            r["rec_reason"] = "Inspired by your browsing"
         recommendations.extend(content_recs)
 
     # --- Part 3: trending fill ---
     trending = get_trending_products(limit)
     for t in trending:
-        t.setdefault("rec_reason", "Trending this week")
+        t.setdefault("rec_reason", "Popular now")
 
     # Deduplicate while preserving order
     seen_ids = set()
@@ -631,10 +632,13 @@ if knn_content is not None and tfidf_matrix is not None and product_ids is not N
 if knn_users is not None and user_item_matrix is not None:
     print("[ML] Collaborative model loaded.")
 if knn_content is None or knn_users is None:
-    print("[ML] WARNING: one or more models failed to load — check the messages above. "
-          "(Most common cause: `pandas` missing from the environment.)")
+    print(
+        "[ML] WARNING: one or more models failed to load — check the messages above. "
+        "Install requirements-app.txt so pandas is present and NumPy/scikit-learn "
+        "match the saved model artifacts."
+    )
 
-    
+
 # ====================== PUBLIC ROUTES ======================
 @app.route("/")
 def index():
@@ -746,6 +750,86 @@ def add_review(product_id):
     return redirect(url_for("product_detail", product_id=product_id))
 
 # ====================== CHATBOT API ======================
+CHAT_SEARCH_STOP_WORDS = {
+    "about", "all", "any", "best", "buy", "can", "cheap", "do", "find",
+    "for", "good", "have", "help", "item", "items", "looking", "me", "need",
+    "please", "product", "products", "search", "show", "some", "the", "want",
+    "with", "under", "below", "budget", "less", "than", "within", "upto", "up", "to", "rs", "pkr",
+    "mujhe", "dikhao", "chahiye", "karo", "kro", "hai", "kya",
+}
+
+
+def serialize_chat_products(products, limit=3):
+    """Return a small, browser-safe product payload for chat cards."""
+    cards = []
+    for product in products[:limit]:
+        cards.append({
+            "id": int(product["id"]),
+            "name": product["name"],
+            "brand": product.get("brand") or "",
+            "category": product.get("category") or "",
+            "price": float(product["price"]),
+            "rating": float(product.get("rating") or 0),
+            "stock": int(product.get("stock") or 0),
+            "image_url": product.get("image_url") or resolve_product_image(product),
+            "url": url_for("product_detail", product_id=product["id"]),
+            "reason": product.get("rec_reason") or "",
+        })
+    return cards
+
+
+def find_products_for_chat(message, limit=3):
+    """Search live inventory using a category, budget and useful message words."""
+    text = message.casefold()
+    categories = get_categories()
+    category = next((item for item in categories if item.casefold() in text), None)
+
+    budget = None
+    budget_match = re.search(
+        r"(?:under|below|less than|within|up to|upto|budget(?: of)?)\s*(?:rs\.?|pkr)?\s*([\d,]+)\s*(k)?",
+        text,
+    )
+    if budget_match:
+        budget = float(budget_match.group(1).replace(",", ""))
+        if budget_match.group(2):
+            budget *= 1000
+
+    keywords = []
+    for word in re.findall(r"[a-z0-9]+", text):
+        if len(word) > 2 and not word.isdigit() and word not in CHAT_SEARCH_STOP_WORDS:
+            keywords.append(word)
+    keywords = list(dict.fromkeys(keywords))[:4]
+
+    sql = "SELECT TOP 3 * FROM Products WHERE stock > 0"
+    params = []
+    if category:
+        sql += " AND category = ?"
+        params.append(category)
+    if budget is not None:
+        sql += " AND price <= ?"
+        params.append(budget)
+    if keywords and not category:
+        conditions = []
+        for keyword in keywords:
+            conditions.append("(name LIKE ? OR brand LIKE ? OR category LIKE ? OR description LIKE ?)")
+            search_value = f"%{keyword}%"
+            params.extend([search_value] * 4)
+        sql += " AND (" + " OR ".join(conditions) + ")"
+    sql += " ORDER BY rating DESC, price ASC"
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        products = rows_to_dicts(cursor)
+
+    for product in products:
+        product["image_url"] = resolve_product_image(product)
+    return products[:limit]
+
+
 @app.route("/api/chat", methods=["POST"])
 def chatbot_api():
     data = request.get_json(silent=True) or {}
@@ -766,8 +850,107 @@ def chatbot_api():
             "confidence": 0
         }), 400
 
-    result = chatbot_reply(message)
+    # Extract conversation history sent by the frontend (last N turns).
+    # Each entry is expected to be {"role": "user"|"bot", "content": str,
+    # "intent": str (bot turns only)}.  We cap at 6 entries for safety.
+    raw_history = data.get("history", [])
+    history = []
+    if isinstance(raw_history, list):
+        for turn in raw_history[-6:]:
+            if isinstance(turn, dict) and turn.get("role") in {"user", "bot"}:
+                history.append(turn)
 
+    result = chatbot_reply(message, history=history)
+    intent = result.get("intent", "unknown")
+    result["reply"] = result.get("reply", "").replace("Cartify", "ZiloCart")
+    result["products"] = []
+
+    if intent == "recommendation":
+        if session.get("user_id"):
+            products = get_personalized_recommendations(3)
+            result["reply"] = "Here are a few products selected for you."
+        else:
+            products = get_trending_products(3)
+            result["reply"] = "Here are a few popular products to get you started. Sign in for personalised picks."
+        result["products"] = serialize_chat_products(products)
+
+    elif intent in {"product_search", "product_details", "similar_products", "product_comparison"}:
+        products = find_products_for_chat(message, 3)
+        if not products:
+            products = get_trending_products(3)
+            result["reply"] = "I could not find an exact match, but these popular products may help."
+        elif intent == "similar_products":
+            result["reply"] = "Here are some related options from the live catalog."
+        elif intent == "product_comparison":
+            result["reply"] = "Open these products to compare their price, rating, features and stock."
+        else:
+            result["reply"] = "Here are the closest matches from the live catalog."
+        result["products"] = serialize_chat_products(products)
+
+    elif intent == "offers":
+        products = search_and_filter_products(sort_by="price_low")[:3]
+        result["reply"] = "Here are some of the most affordable products currently available."
+        result["products"] = serialize_chat_products(products)
+
+    elif intent == "cart":
+        cart = session.get("cart", [])
+        if not session.get("user_id"):
+            result["reply"] = "Please sign in to view and manage your cart."
+        elif not cart:
+            result["reply"] = "Your cart is currently empty."
+        else:
+            product_ids_in_cart = [item["id"] for item in cart]
+            products = get_products_by_ids(product_ids_in_cart)
+            quantity_total = sum(item.get("quantity", 0) for item in cart)
+            result["reply"] = f"Your cart contains {quantity_total} item(s)."
+            result["products"] = serialize_chat_products(products)
+
+    elif intent == "order_tracking":
+        if not session.get("user_id"):
+            result["reply"] = "Please sign in to view your order status."
+        else:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    SELECT TOP 1 id, status, order_date, total_amount
+                    FROM Orders
+                    WHERE user_id = ?
+                    ORDER BY order_date DESC, id DESC
+                    """,
+                    session["user_id"],
+                )
+                order = cursor.fetchone()
+            if order:
+                order_date = order[2].strftime("%d %b %Y") if order[2] else "recently"
+                result["reply"] = (
+                    f"Your latest order #{order[0]}, placed {order_date}, is currently "
+                    f"{order[1].lower()}. Total: Rs {float(order[3]):,.2f}."
+                )
+            else:
+                result["reply"] = "You do not have any orders yet."
+
+    elif intent == "checkout":
+        if not session.get("user_id"):
+            result["reply"] = "Please sign in before continuing to checkout."
+        elif not session.get("cart"):
+            result["reply"] = "Your cart is empty. Add a product before checking out."
+        else:
+            quantity_total = sum(item.get("quantity", 0) for item in session["cart"])
+            result["reply"] = f"You have {quantity_total} item(s) ready for checkout."
+
+    elif intent == "account":
+        if not session.get("user_id"):
+            result["reply"] = "Please sign in to view your account information."
+        else:
+            user = get_user_by_id(session["user_id"])
+            result["reply"] = (
+                f"You are signed in as {user['name']} ({user['email']}). "
+                "Open your profile to manage your details and password."
+            )
+
+    # Customer privacy: ApBot can use the logged-in customer's own account,
+    # cart and orders, but never exposes another user's personal information.
     return jsonify(result)
 
 

@@ -28,8 +28,8 @@
 
     <section class="auth-form-panel">
         <span class="auth-eyebrow mb-2">Secure account access</span>
-        <h2 class="mb-2">Sign in to Cartify</h2>
-        <p class="text-muted mb-4">Enter your email and password, or use a demo account to explore the complete project.</p>
+        <h2 class="mb-2">Sign in to ZiloCart</h2>
+        <p class="text-muted mb-4">Enter the email and password connected to your ZiloCart account.</p>
 
         <form method="POST" data-submit-label="Signing you in…">
             <div class="mb-3">
@@ -55,19 +55,12 @@
             <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Sign in securely</button>
         </form>
 
-        <div class="demo-access">
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                <span class="demo-access-title">Quick demo access</span>
-                <span class="text-muted" style="font-size:.61rem;">Click to fill</span>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="button" class="demo-account-btn" data-demo-email="demo@test.com" data-demo-password="test123">Customer demo</button>
-                <button type="button" class="demo-account-btn" data-demo-email="admin@smartshop.com" data-demo-password="admin123">Admin demo</button>
-            </div>
-            <p class="text-muted mb-0 mt-2" style="font-size:.61rem;line-height:1.5;">Customer: demo@test.com / test123 &nbsp;·&nbsp; Admin: admin@smartshop.com / admin123</p>
+        <div class="d-flex align-items-center gap-2 mt-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--shop-line);">
+            <svg class="ui-icon" style="color:var(--shop-green);width:18px;height:18px;"><use href="#icon-shield"></use></svg>
+            <span class="text-muted" style="font-size:.66rem;line-height:1.5;">Your sign-in information is encrypted and used only to access your account.</span>
         </div>
 
-        <div class="auth-divider">New to Cartify?</div>
+        <div class="auth-divider">New to ZiloCart?</div>
         <a class="btn btn-outline-primary w-100" href="{{ url_for('register') }}">Create a free account</a>
     </section>
 </div>

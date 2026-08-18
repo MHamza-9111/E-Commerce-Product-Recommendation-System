@@ -60,7 +60,6 @@
         "Welcome to Cartify! What can I help you with?"
       ]
     },
-
     {
       "tag": "goodbye",
       "patterns": [
@@ -118,7 +117,6 @@
         "Goodbye! Have a great day."
       ]
     },
-
     {
       "tag": "thanks",
       "patterns": [
@@ -179,7 +177,6 @@
         "Anytime! Is there anything else you need?"
       ]
     },
-
     {
       "tag": "help",
       "patterns": [
@@ -237,7 +234,6 @@
         "I can help you find products and answer common shopping questions."
       ]
     },
-
     {
       "tag": "product_search",
       "patterns": [
@@ -307,7 +303,6 @@
         "What type of product would you like me to find?"
       ]
     },
-
     {
       "tag": "recommendation",
       "patterns": [
@@ -375,7 +370,6 @@
         "I'd be happy to recommend something. What type of product are you interested in?"
       ]
     },
-
     {
       "tag": "product_details",
       "patterns": [
@@ -441,7 +435,6 @@
         "You can open the product page to see its full information."
       ]
     },
-
     {
       "tag": "similar_products",
       "patterns": [
@@ -504,7 +497,6 @@
         "Let me help you find some alternatives."
       ]
     },
-
     {
       "tag": "offers",
       "patterns": [
@@ -568,7 +560,6 @@
         "Sure! I can help you look for available deals and offers."
       ]
     },
-
     {
       "tag": "order_tracking",
       "patterns": [
@@ -635,7 +626,6 @@
         "I'll help you check your order status."
       ]
     },
-
     {
       "tag": "checkout",
       "patterns": [
@@ -697,7 +687,6 @@
         "Let's get your order ready for checkout."
       ]
     },
-
     {
       "tag": "payment",
       "patterns": [
@@ -757,7 +746,6 @@
         "Cash on delivery is currently available for eligible orders."
       ]
     },
-
     {
       "tag": "returns",
       "patterns": [
@@ -822,7 +810,6 @@
         "Our support team can help you with returns, exchanges and refunds."
       ]
     },
-
     {
       "tag": "contact_support",
       "patterns": [
@@ -876,12 +863,12 @@
         "I need assistance from customer service"
       ],
       "responses": [
-        "Please provide your order details when contacting a customer representative.",
-        "I can handle common questions, but a customer representative can help with specific complaints.",
-        "Please contact customer support with your order number and issue details."
+        "For direct assistance, please call our toll-free number: 0800-CARTIFY (0800-227-8439). Have your order number ready when you call.",
+        "Our customer representatives are available on our toll-free line 0800-227-8439. Please mention your order number for faster support.",
+        "I can handle common questions, but for specific complaints or escalations please call 0800-CARTIFY (0800-227-8439) and a representative will assist you.",
+        "Please contact our support team on 0800-227-8439 with your order number and issue details. They are available during business hours."
       ]
     },
-
     {
       "tag": "cancel_order",
       "patterns": [
@@ -939,7 +926,6 @@
         "Please open My Orders and select the order you want to cancel."
       ]
     },
-
     {
       "tag": "shipping",
       "patterns": [
@@ -1001,7 +987,6 @@
         "Enter your delivery details at checkout to view the applicable shipping information."
       ]
     },
-
     {
       "tag": "cart",
       "patterns": [
@@ -1059,7 +1044,6 @@
         "Open the Cart section to review your selected products."
       ]
     },
-
     {
       "tag": "wishlist",
       "patterns": [
@@ -1113,7 +1097,6 @@
         "Open the Wishlist section to see your saved items."
       ]
     },
-
     {
       "tag": "product_comparison",
       "patterns": [
@@ -1175,7 +1158,6 @@
         "I can help you understand the differences between products."
       ]
     },
-
     {
       "tag": "account",
       "patterns": [
@@ -1232,7 +1214,6 @@
         "Sure! You can access your account settings from your profile."
       ]
     },
-
     {
       "tag": "unknown",
       "patterns": [

@@ -1,96 +1,149 @@
 {% extends "base.html" %}
-{% block title %}My Profile{% endblock %}
+{% block title %}My Account{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-9">
-        <div class="shop-surface overflow-hidden">
-            <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #111827, #26619C);">
-                <div class="d-flex flex-wrap align-items-center gap-4">
+<div class="account-page">
+    <div class="account-heading mb-4" data-reveal>
+        <div>
+            <span class="section-eyebrow">Account settings</span>
+            <h1>Manage your profile</h1>
+            <p>Keep your personal information, profile photo and password up to date.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if user.role == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('order_history') }}" class="btn btn-outline-primary">My orders</a>
+                <a href="{{ url_for('view_cart') }}" class="btn btn-primary">View cart</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4 align-items-start">
+        <aside class="col-lg-4" data-reveal>
+            <div class="account-identity-card">
+                <div class="account-identity-bg" aria-hidden="true"></div>
+                <div class="account-avatar-wrap">
                     {% if user.profile_image %}
-                        <img class="profile-photo-xl" src="{{ url_for('static', filename=user.profile_image) }}" alt="{{ user.name }}">
+                        <img class="account-avatar" src="{{ url_for('static', filename=user.profile_image) }}" alt="{{ user.name }}">
                     {% else %}
-                        <div class="profile-photo-xl d-flex align-items-center justify-content-center fw-bold fs-1"
-                             style="background:linear-gradient(135deg,var(--shop-brand),var(--shop-accent));color:#fff;">{{ user.name[:1] }}</div>
+                        <span class="account-avatar account-avatar-fallback">{{ user.name[:1] }}</span>
                     {% endif %}
-                    <div class="flex-grow-1">
-                        <h2 class="mb-1">{{ user.name }}</h2>
-                        <p class="mb-2 opacity-75">{{ user.email }}</p>
-                        <span class="badge bg-light text-dark">{{ user.role|capitalize }} account</span>
-                        <span class="badge bg-success ms-1">{{ user.status|capitalize }}</span>
+                    <span class="account-status-dot" title="Active account"></span>
+                </div>
+                <h2>{{ user.name }}</h2>
+                <p>{{ user.email }}</p>
+                <div class="account-badges">
+                    <span>{{ user.role|capitalize }}</span>
+                    <span class="is-active">{{ user.status|capitalize }}</span>
+                </div>
+
+                <div class="account-summary">
+                    <div>
+                        <svg class="ui-icon"><use href="#icon-shield"></use></svg>
+                        <span><strong>Secure account</strong><small>Password-protected profile</small></span>
                     </div>
+                    <div>
+                        <svg class="ui-icon"><use href="#icon-user"></use></svg>
+                        <span><strong>Personal details</strong><small>Used for your shopping account</small></span>
+                    </div>
+                    {% if user.role != 'admin' %}
+                    <div>
+                        <svg class="ui-icon"><use href="#icon-package"></use></svg>
+                        <span><strong>Order history</strong><small>Purchases kept in one place</small></span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
+        </aside>
 
-            <form method="POST" enctype="multipart/form-data" class="p-4 p-md-5">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control form-control-lg" value="{{ user.name }}" required>
+        <div class="col-lg-8" data-reveal>
+            <form method="POST" enctype="multipart/form-data" class="account-form" data-submit-label="Saving changes…">
+                <section class="account-form-section">
+                    <div class="account-section-heading">
+                        <span class="account-section-icon"><svg class="ui-icon"><use href="#icon-edit"></use></svg></span>
+                        <div><h2>Personal information</h2><p>Update the name and email shown on your account.</p></div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control form-control-lg" value="{{ user.email }}" required>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Profile Picture</label>
-                        <div class="d-flex align-items-center gap-3 flex-wrap">
-                            {% if user.profile_image %}
-                                <img src="{{ url_for('static', filename=user.profile_image) }}"
-                                     alt="Current photo"
-                                     class="rounded-circle"
-                                     style="width:60px;height:60px;object-fit:cover;border:3px solid var(--shop-line);">
-                            {% else %}
-                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                                     style="width:60px;height:60px;background:linear-gradient(135deg,var(--shop-brand),var(--shop-accent));color:#fff;font-size:1.4rem;flex-shrink:0;">
-                                    {{ user.name[:1] }}
-                                </div>
-                            {% endif %}
-                            <div class="flex-grow-1">
-                                <input type="file" name="profile_image" class="form-control" accept="image/png,image/jpeg,image/gif,image/webp" id="profileImageInput">
-                                <div class="form-text">Upload PNG, JPG, JPEG, GIF or WEBP · max 3 MB. Leave blank to keep current photo.</div>
-                            </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="profile-name">Full name</label>
+                            <input id="profile-name" type="text" name="name" class="form-control" value="{{ user.name }}" autocomplete="name" required>
                         </div>
-                        <!-- Live preview -->
-                        <div id="profilePreviewBox" class="mt-2 d-none">
-                            <label class="form-label mb-1" style="font-size:0.82rem;color:var(--shop-muted);">New photo preview</label><br>
-                            <img id="profilePreview" src="" alt="Preview" class="rounded-circle"
-                                 style="width:72px;height:72px;object-fit:cover;border:3px solid var(--shop-brand);">
+                        <div class="col-md-6">
+                            <label class="form-label" for="profile-email">Email address</label>
+                            <input id="profile-email" type="email" name="email" class="form-control" value="{{ user.email }}" autocomplete="email" required>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <hr class="my-2">
-                        <p class="fw-semibold mb-3">🔒 Change Password <span class="text-muted fw-normal" style="font-size:0.82rem;">(leave blank to keep current password)</span></p>
+                </section>
+
+                <section class="account-form-section">
+                    <div class="account-section-heading">
+                        <span class="account-section-icon"><svg class="ui-icon"><use href="#icon-image"></use></svg></span>
+                        <div><h2>Profile photo</h2><p>Choose a clear image so your account is easy to recognise.</p></div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Current Password</label>
-                        <input type="password" name="current_password" class="form-control">
+                    <label class="profile-upload-box" for="profileImageInput">
+                        <span class="profile-upload-icon"><svg class="ui-icon"><use href="#icon-upload"></use></svg></span>
+                        <span><strong>Choose a new photo</strong><small>PNG, JPG, GIF or WEBP · up to 3 MB</small></span>
+                        <span class="profile-upload-action">Browse</span>
+                    </label>
+                    <input type="file" name="profile_image" accept="image/png,image/jpeg,image/gif,image/webp" id="profileImageInput" class="visually-hidden">
+                    <div id="profilePreviewBox" class="profile-preview d-none">
+                        <img id="profilePreview" src="" alt="Selected profile preview">
+                        <div><strong>New photo selected</strong><small id="profileFileName"></small></div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">New Password</label>
-                        <input type="password" name="new_password" class="form-control">
+                </section>
+
+                <section class="account-form-section">
+                    <div class="account-section-heading">
+                        <span class="account-section-icon"><svg class="ui-icon"><use href="#icon-lock"></use></svg></span>
+                        <div><h2>Password & security</h2><p>Leave these fields empty if you do not want to change your password.</p></div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" name="confirm_password" class="form-control">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="current-password">Current password</label>
+                            <input id="current-password" type="password" name="current_password" class="form-control" autocomplete="current-password">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="new-password">New password</label>
+                            <input id="new-password" type="password" name="new_password" class="form-control" minlength="6" autocomplete="new-password">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="confirm-password">Confirm password</label>
+                            <input id="confirm-password" type="password" name="confirm_password" class="form-control" minlength="6" autocomplete="new-password">
+                        </div>
                     </div>
+                </section>
+
+                <div class="account-form-footer">
+                    <p><svg class="ui-icon"><use href="#icon-shield"></use></svg>Your account information is stored securely.</p>
+                    <button type="submit" class="btn btn-primary btn-lg">Save changes</button>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg mt-4 px-4">Save Profile</button>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-document.getElementById('profileImageInput').addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-        document.getElementById('profilePreview').src = ev.target.result;
-        document.getElementById('profilePreviewBox').classList.remove('d-none');
-    };
-    reader.readAsDataURL(file);
-});
+(function () {
+    const input = document.getElementById("profileImageInput");
+    const previewBox = document.getElementById("profilePreviewBox");
+    const preview = document.getElementById("profilePreview");
+    const fileName = document.getElementById("profileFileName");
+    if (!input) return;
+
+    input.addEventListener("change", function () {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            preview.src = event.target.result;
+            fileName.textContent = file.name;
+            previewBox.classList.remove("d-none");
+        };
+        reader.readAsDataURL(file);
+    });
+})();
 </script>
 {% endblock %}

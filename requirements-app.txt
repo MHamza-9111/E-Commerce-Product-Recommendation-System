@@ -15,9 +15,11 @@ pymongo==4.12.1
 python-dotenv==1.2.2
 Pillow==10.2.0
 
-# ML / recommendations
+# ML / recommendations and ApBot runtime
 scikit-learn==1.8.0
 numpy==2.3.3
 scipy==1.15.3
 joblib==1.5.3
-pandas==2.3.3   # required to unpickle user_item_matrix.pkl (collaborative model) — app crashed silently to SQL-only fallback without this
+pandas==2.3.3
+tensorflow==2.21.0
+nltk==3.10.3

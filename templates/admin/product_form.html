@@ -51,7 +51,7 @@
                     <!-- IMAGE SECTION -->
                     <div class="col-12">
                         <hr class="my-1">
-                        <p class="fw-semibold mb-1">🖼️ Product Images</p>
+                        <p class="fw-semibold mb-1 icon-label"><svg class="ui-icon"><use href="#icon-image"></use></svg>Product images</p>
                         <p class="text-muted mb-3" style="font-size:0.82rem;">Upload multiple photos from your device, or add image URLs. First image is the main display image.</p>
                     </div>
 
@@ -59,7 +59,7 @@
                     <div class="col-12">
                         <label class="form-label fw-semibold">Upload from Device <span class="text-muted fw-normal" style="font-size:0.8rem;">(select multiple at once)</span></label>
                         <div id="dropZone" class="upload-drop-zone" onclick="document.getElementById('productImagesInput').click()">
-                            <div class="drop-icon">📁</div>
+                            <div class="drop-icon"><svg class="ui-icon" style="width:30px;height:30px;"><use href="#icon-folder"></use></svg></div>
                             <div class="drop-label">Click to browse or drag &amp; drop images here</div>
                             <div class="drop-sub">PNG, JPG, WEBP, GIF · max 5 MB each · multiple allowed</div>
                         </div>
@@ -107,7 +107,7 @@
                     </div>
                 </div>
                 <div class="d-flex gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary px-5">💾 Save Product</button>
+                    <button type="submit" class="btn btn-primary px-5 icon-label"><svg class="ui-icon"><use href="#icon-save"></use></svg>Save product</button>
                     <a href="{{ url_for('admin_products') }}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>

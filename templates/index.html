@@ -9,7 +9,7 @@
             <div class="hero-copy">
                 <span class="hero-kicker"><span class="hero-kicker-dot" aria-hidden="true"></span> Recommendation engine online</span>
                 <h1 class="hero-title" id="hero-title">Find products that feel <span>picked for you.</span></h1>
-                <p class="hero-lead">Cartify learns from product similarities, shopping activity and customer choices to make discovery faster, clearer and more personal.</p>
+                <p class="hero-lead">ZiloCart learns from product similarities, shopping activity and customer choices to make discovery faster, clearer and more personal.</p>
 
                 <form class="hero-search mt-4" method="GET" action="{{ url_for('products') }}" role="search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
@@ -48,37 +48,37 @@
                 </a>
                 {% endfor %}
                 <div class="hero-ai-badge">
-                    <span class="hero-ai-icon">AI</span>
-                    <span><strong>Smart matches</strong><small>Ranked in real time</small></span>
+                    <span class="hero-ai-icon"><svg class="ui-icon"><use href="#icon-star"></use></svg></span>
+                    <span><strong>Curated picks</strong><small>Selected around your interests</small></span>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="trust-strip" aria-label="Why shop with Cartify" data-reveal>
+<section class="trust-strip" aria-label="Why shop with ZiloCart" data-reveal>
     <div class="row g-3 g-lg-4">
         <div class="col-sm-6 col-lg-3">
             <div class="trust-item">
-                <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <span class="trust-icon"><svg class="ui-icon"><use href="#icon-search"></use></svg></span>
                 <span><strong>Personalised discovery</strong><span>Recommendations that improve with you</span></span>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="trust-item">
-                <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+                <span class="trust-icon"><svg class="ui-icon"><use href="#icon-truck"></use></svg></span>
                 <span><strong>Free delivery</strong><span>Simple checkout with no delivery fee</span></span>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="trust-item">
-                <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <span class="trust-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></span>
                 <span><strong>Secure account</strong><span>Protected profiles and order records</span></span>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="trust-item">
-                <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 2 3 6 6 .9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 8.9 9 8z"/></svg></span>
+                <span class="trust-icon"><svg class="ui-icon"><use href="#icon-star"></use></svg></span>
                 <span><strong>Trusted ratings</strong><span>Reviews from verified purchases</span></span>
             </div>
         </div>
@@ -97,22 +97,22 @@
 
     <div class="category-grid" data-reveal>
         <a class="category-card" href="{{ url_for('products', category='Electronics') }}" style="--category-tint:#eaf4fd;--category-color:#125f9f;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">EL</span><strong>Electronics</strong><span>Audio, devices & accessories</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-headphones"></use></svg></span><strong>Electronics</strong><span>Audio, devices & accessories</span>
         </a>
         <a class="category-card" href="{{ url_for('products', category='Home & Living') }}" style="--category-tint:#edf8f2;--category-color:#178455;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">HL</span><strong>Home & Living</strong><span>Comfort for every room</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-home"></use></svg></span><strong>Home & Living</strong><span>Comfort for every room</span>
         </a>
         <a class="category-card" href="{{ url_for('products', category='Kitchen') }}" style="--category-tint:#fff4e5;--category-color:#a15c00;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">KT</span><strong>Kitchen</strong><span>Tools for better cooking</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-utensils"></use></svg></span><strong>Kitchen</strong><span>Tools for better cooking</span>
         </a>
         <a class="category-card" href="{{ url_for('products', category='Sports') }}" style="--category-tint:#f2efff;--category-color:#6941c6;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">SP</span><strong>Sports</strong><span>Move, train and perform</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-dumbbell"></use></svg></span><strong>Sports</strong><span>Move, train and perform</span>
         </a>
         <a class="category-card" href="{{ url_for('products', category='Books') }}" style="--category-tint:#fff1eb;--category-color:#df4f1d;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">BK</span><strong>Books</strong><span>Ideas worth discovering</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-book"></use></svg></span><strong>Books</strong><span>Ideas worth discovering</span>
         </a>
         <a class="category-card" href="{{ url_for('products', category='Personal Care') }}" style="--category-tint:#fce7f3;--category-color:#c11574;">
-            <span class="category-arrow">↗</span><span class="category-card-mark">PC</span><strong>Personal Care</strong><span>Everyday wellness picks</span>
+            <span class="category-arrow" aria-hidden="true"><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></span><span class="category-card-mark"><svg class="ui-icon"><use href="#icon-heart"></use></svg></span><strong>Personal Care</strong><span>Everyday wellness picks</span>
         </a>
     </div>
 </section>
@@ -121,7 +121,7 @@
 <section id="recommended" aria-labelledby="recommended-heading">
     <div class="section-heading">
         <div>
-            <span class="section-eyebrow">Curated by Cartify</span>
+            <span class="section-eyebrow">Curated by ZiloCart</span>
             <h2 id="recommended-heading">Recommended for you</h2>
             <p class="section-heading-copy">Personalised choices based on your shopping signals.</p>
         </div>
@@ -142,7 +142,7 @@
         <div>
             <span class="section-eyebrow">What shoppers notice</span>
             <h2 id="trending-heading">{% if session.user_id %}Trending now{% else %}Popular picks{% endif %}</h2>
-            <p class="section-heading-copy">Highly relevant products getting attention across Cartify.</p>
+            <p class="section-heading-copy">Highly relevant products getting attention across ZiloCart.</p>
         </div>
         <a href="{{ url_for('products', sort='rating') }}" class="btn btn-outline-primary btn-sm">Explore top rated</a>
     </div>
@@ -160,7 +160,7 @@
         <div class="col-lg-8">
             <span class="discovery-badge"><span class="announcement-dot"></span> Built around smarter choices</span>
             <h2 class="fw-800 mt-3 mb-2" style="letter-spacing:-.04em;">Not sure what to choose? Start with the highest-rated products.</h2>
-            <p class="text-muted mb-0" style="font-size:.85rem;line-height:1.7;">Compare categories, prices, brands and verified reviews in one clean catalog. Your activity helps Cartify make the next recommendation even better.</p>
+            <p class="text-muted mb-0" style="font-size:.85rem;line-height:1.7;">Compare categories, prices, brands and verified reviews in one clean catalog. Your activity helps ZiloCart make the next recommendation even better.</p>
         </div>
         <div class="col-lg-4 text-lg-end">
             <a href="{{ url_for('products', sort='rating') }}" class="btn btn-primary btn-lg">Discover top products</a>

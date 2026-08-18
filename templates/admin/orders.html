@@ -63,7 +63,7 @@
                     <td class="text-muted small">{{ order.order_date.strftime('%d %b %Y') if order.order_date else '—' }}</td>
                     <td style="max-width:160px;">
                         <span class="small text-muted">{{ order.address or '—' }}</span>
-                        {% if order.phone %}<br><span class="small">📞 {{ order.phone }}</span>{% endif %}
+                        {% if order.phone %}<br><span class="small icon-label"><svg class="ui-icon"><use href="#icon-phone"></use></svg>{{ order.phone }}</span>{% endif %}
                     </td>
                     <td>
                         {% set sc = {'Placed':'status-placed','Processing':'status-processing','Shipped':'status-shipped','Delivered':'status-delivered','Cancelled':'status-cancelled'} %}
@@ -90,7 +90,7 @@
 <div class="mt-3 text-muted small ps-1">Showing {{ orders|length }} order{{ 's' if orders|length != 1 else '' }}{% if status_filter %} with status <strong>{{ status_filter }}</strong>{% endif %}.</div>
 {% else %}
 <div class="shop-surface p-5 text-center">
-    <div style="font-size:3rem;">📦</div>
+    <span class="empty-state-icon"><svg class="ui-icon" style="width:30px;height:30px;"><use href="#icon-package"></use></svg></span>
     <h5 class="mt-3 mb-1">No orders{% if status_filter %} with status "{{ status_filter }}"{% endif %}</h5>
     <p class="text-muted mb-0">{% if status_filter %}<a href="{{ url_for('admin_orders') }}">Clear filter</a> to see all orders.{% else %}Orders will appear here once customers start placing them.{% endif %}</p>
 </div>

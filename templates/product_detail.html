@@ -141,7 +141,7 @@
         </div>
         {% if product.get('stock', 100) > 0 and product.get('stock', 100) <= 10 %}
             <div class="mb-2">
-                <span style="color:#b45309;font-size:0.82rem;font-weight:600;">⚠️ Only {{ product.stock }} left in stock — order soon</span>
+                <span class="icon-label" style="color:#b45309;font-size:0.78rem;font-weight:700;"><svg class="ui-icon"><use href="#icon-alert"></use></svg>Only {{ product.stock }} left in stock — order soon</span>
             </div>
         {% endif %}
         <hr>
@@ -155,7 +155,7 @@
             <button class="btn btn-dark btn-lg px-5" disabled>Out of Stock</button>
         {% else %}
             <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="d-grid d-sm-block">
-                <button type="submit" class="btn btn-success btn-lg px-5">🛒 Add to Cart</button>
+                <button type="submit" class="btn btn-success btn-lg px-5 icon-label"><svg class="ui-icon"><use href="#icon-cart"></use></svg>Add to cart</button>
             </form>
         {% endif %}
     </div>
@@ -193,12 +193,12 @@
                 <p class="mb-0 text-muted">Admins cannot write reviews.</p>
             {% elif user_reviewed %}
                 <div class="p-3 rounded text-center" style="background:var(--shop-brand-light);border:1px solid rgba(var(--shop-brand-rgb),0.2);">
-                    <div style="font-size:1.5rem;">✅</div>
+                    <span class="empty-state-icon" style="width:44px;height:44px;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-check"></use></svg></span>
                     <p class="mb-0 fw-600 mt-1">You have already reviewed this product.</p>
                 </div>
             {% elif not user_purchased %}
                 <div class="p-3 rounded text-center" style="background:#f8fafc;border:1px solid var(--shop-line);">
-                    <div style="font-size:1.5rem;">🛒</div>
+                    <span class="empty-state-icon" style="width:44px;height:44px;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-cart"></use></svg></span>
                     <p class="mb-0 mt-1 text-muted" style="font-size:0.88rem;">You can review this product once your order is delivered.</p>
                 </div>
             {% else %}
@@ -256,7 +256,7 @@
             </div>
             {% else %}
             <div class="text-center py-4 text-muted">
-                <div style="font-size:2rem;">💬</div>
+                <span class="empty-state-icon" style="width:50px;height:50px;"><svg class="ui-icon" style="width:22px;height:22px;"><use href="#icon-message"></use></svg></span>
                 <p class="mb-0 mt-2">No reviews yet. Be the first to review this product!</p>
             </div>
             {% endfor %}

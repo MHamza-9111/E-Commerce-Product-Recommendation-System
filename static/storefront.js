@@ -74,21 +74,6 @@
             });
         });
 
-        // Demo account buttons make evaluator access quick without changing login logic.
-        document.querySelectorAll("[data-demo-email]").forEach(function (button) {
-            button.addEventListener("click", function () {
-                var emailInput = document.querySelector('input[name="email"]');
-                var passwordInput = document.querySelector('input[name="password"]');
-                if (!emailInput || !passwordInput) return;
-
-                emailInput.value = button.getAttribute("data-demo-email") || "";
-                passwordInput.value = button.getAttribute("data-demo-password") || "";
-                emailInput.dispatchEvent(new Event("input", { bubbles: true }));
-                passwordInput.dispatchEvent(new Event("input", { bubbles: true }));
-                passwordInput.focus();
-            });
-        });
-
         // Briefly show submit progress without interfering with browser validation.
         document.querySelectorAll("form[data-submit-label]").forEach(function (form) {
             form.addEventListener("submit", function () {

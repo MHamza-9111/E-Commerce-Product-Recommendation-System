@@ -1,46 +1,59 @@
-<!-- ApBot floating shopping assistant -->
+<!-- ApBot shopping assistant -->
 <div class="apbot-shell"
      id="apbot"
      data-api-url="{{ url_for('chatbot_api') }}"
      data-products-url="{{ url_for('products') }}"
      data-orders-url="{{ url_for('order_history') }}"
-     data-checkout-url="{{ url_for('checkout') }}">
+     data-cart-url="{{ url_for('view_cart') }}"
+     data-checkout-url="{{ url_for('checkout') }}"
+     data-profile-url="{{ url_for('profile') }}">
     <section class="apbot-window" id="apbotWindow" aria-label="ApBot shopping assistant" hidden>
         <div class="apbot-panel">
-            <header class="apbot-header">
+            <header class="apbot-header" id="apbotDragHandle" title="Drag to move">
                 <div class="apbot-header-info">
-                    <span class="apbot-avatar">AI</span>
+                    <span class="apbot-avatar" aria-hidden="true">
+                        <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                    </span>
                     <span>
                         <strong>ApBot</strong>
-                        <small><span class="apbot-online-dot"></span>AI shopping assistant</small>
+                        <small><span class="apbot-online-dot"></span>Ready to help</small>
                     </span>
                 </div>
-                <button type="button" class="apbot-close" id="apbotClose" aria-label="Close chatbot">×</button>
+                <div class="apbot-header-actions">
+                    <span class="apbot-drag-grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                    <button type="button" class="apbot-close" id="apbotClose" aria-label="Close ApBot">
+                        <svg class="ui-icon"><use href="#icon-x"></use></svg>
+                    </button>
+                </div>
             </header>
 
             <div class="apbot-messages" id="apbotMessages" aria-live="polite">
-                <div class="apbot-message apbot-message-bot">
-                    <div class="apbot-bubble">Hello! I’m ApBot. I can help you find products, get recommendations, track orders and open checkout.</div>
+                <div class="apbot-welcome">
+                    <span class="apbot-welcome-icon"><img src="{{ url_for('static', filename='logo.png') }}" alt=""></span>
+                    <strong>How can we help?</strong>
+                    <p>Ask about products, recommendations, orders, delivery, returns or checkout.</p>
                 </div>
             </div>
 
-            <div class="apbot-quick-actions">
-                <button type="button" class="apbot-quick-button" data-apbot-message="Recommend something for me">Recommendations</button>
-                <button type="button" class="apbot-quick-button" data-apbot-message="Where is my order?">Track order</button>
-                <button type="button" class="apbot-quick-button" data-apbot-message="Take me to checkout">Checkout</button>
+            <div class="apbot-quick-actions" aria-label="Suggested questions">
+                <button type="button" class="apbot-quick-button" data-apbot-message="Recommend something for me">Find a product</button>
+                <button type="button" class="apbot-quick-button" data-apbot-message="Where is my order?">Track an order</button>
+                <button type="button" class="apbot-quick-button" data-apbot-message="What is your return policy?">Returns</button>
             </div>
 
             <form class="apbot-form" id="apbotForm">
-                <input type="text" class="apbot-input" id="apbotInput" maxlength="500" placeholder="Ask ApBot anything..." autocomplete="off" required>
+                <label class="visually-hidden" for="apbotInput">Message ApBot</label>
+                <input type="text" class="apbot-input" id="apbotInput" maxlength="500" placeholder="Type your question..." autocomplete="off" required>
                 <button type="submit" class="apbot-send" id="apbotSend" aria-label="Send message">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
                 </button>
             </form>
         </div>
     </section>
 
     <button type="button" class="apbot-toggle" id="apbotToggle" aria-label="Open ApBot" aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+        <img class="apbot-open-icon" src="{{ url_for('static', filename='logo.png') }}" alt="">
+        <svg class="ui-icon apbot-close-icon"><use href="#icon-x"></use></svg>
         <span class="apbot-status" aria-hidden="true"></span>
     </button>
 </div>
