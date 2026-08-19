@@ -16,6 +16,7 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.utils import ImageReader
 from reportlab.lib.units import mm
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
@@ -38,12 +39,15 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "Documentation" / "ZiloCart_ApBot_Complete_Project_Documentation.md"
 OUTPUT = ROOT / "Documentation" / "ZiloCart_ApBot_Project_Documentation.pdf"
+LOGO = ROOT / "static" / "logo.png"
 
 NAVY = colors.HexColor("#0B1F3A")
 BLUE = colors.HexColor("#155EEF")
 CYAN = colors.HexColor("#0EA5E9")
 TEAL = colors.HexColor("#0F766E")
 ORANGE = colors.HexColor("#F97316")
+AMBER = colors.HexColor("#FF9D00")
+SOFT_ORANGE = colors.HexColor("#FFF4E8")
 INK = colors.HexColor("#172033")
 MUTED = colors.HexColor("#5D6B82")
 PALE = colors.HexColor("#EAF2FF")
@@ -78,11 +82,14 @@ class ScreenshotPlaceholder(Flowable):
         canvas = self.canv
         width, height = self.width, self.height
         canvas.saveState()
-        canvas.setFillColor(colors.HexColor("#F8FAFD"))
-        canvas.setStrokeColor(colors.HexColor("#9DB7D8"))
+        canvas.setFillColor(colors.HexColor("#FFFBF6"))
+        canvas.setStrokeColor(colors.HexColor("#F3AD62"))
         canvas.setLineWidth(1.1)
         canvas.roundRect(0, 0, width, height, 6, fill=1, stroke=1)
-        canvas.setStrokeColor(colors.HexColor("#CCD9E9"))
+        canvas.setFillColor(ORANGE)
+        canvas.roundRect(0, height - 5 * mm, width, 5 * mm, 6, fill=1, stroke=0)
+        canvas.rect(0, height - 5 * mm, width, 2.5 * mm, fill=1, stroke=0)
+        canvas.setStrokeColor(colors.HexColor("#F6D6B5"))
         canvas.setDash(5, 4)
         canvas.line(10 * mm, 10 * mm, width - 10 * mm, height - 10 * mm)
         canvas.line(10 * mm, height - 10 * mm, width - 10 * mm, 10 * mm)
@@ -129,21 +136,41 @@ class ReportDocTemplate(BaseDocTemplate):
         if doc.page == 1:
             canvas.setFillColor(NAVY)
             canvas.rect(0, 0, width, height, fill=1, stroke=0)
-            canvas.setFillColor(CYAN)
-            canvas.rect(0, height - 11 * mm, width, 11 * mm, fill=1, stroke=0)
             canvas.setFillColor(ORANGE)
+            canvas.rect(0, height - 8 * mm, width, 8 * mm, fill=1, stroke=0)
+            canvas.setFillColor(AMBER)
             canvas.rect(0, 0, width, 6 * mm, fill=1, stroke=0)
+            # Subtle brand rings provide depth without competing with the title.
+            canvas.setStrokeColor(colors.Color(1, 1, 1, alpha=0.07))
+            canvas.setLineWidth(1.2)
+            for radius in (24, 38, 52):
+                canvas.circle(width - 12 * mm, height - 48 * mm, radius * mm, fill=0, stroke=1)
         else:
+            # Branded header with the real ZiloCart mark.
+            if LOGO.exists():
+                canvas.drawImage(ImageReader(str(LOGO)), self.leftMargin, height - 13.3 * mm,
+                                 width=8.5 * mm, height=7.5 * mm, preserveAspectRatio=True,
+                                 anchor="c", mask="auto")
+            canvas.setFillColor(NAVY)
+            canvas.setFont(BOLD_FONT, 7.4)
+            canvas.drawString(self.leftMargin + 10.5 * mm, height - 10.8 * mm,
+                              "ZILOCART  /  APBOT PROJECT DOCUMENTATION")
+            canvas.setFillColor(MUTED)
+            canvas.setFont(BODY_FONT, 7.2)
+            canvas.drawRightString(width - self.rightMargin, height - 10.8 * mm,
+                                   "VERSION 3.0  •  19 AUGUST 2026")
+            canvas.setStrokeColor(ORANGE)
+            canvas.setLineWidth(1.0)
+            canvas.line(self.leftMargin, height - 15 * mm, width - self.rightMargin, height - 15 * mm)
             canvas.setStrokeColor(LINE)
             canvas.setLineWidth(0.5)
-            canvas.line(self.leftMargin, height - 15 * mm, width - self.rightMargin, height - 15 * mm)
-            canvas.setFillColor(MUTED)
-            canvas.setFont(BODY_FONT, 7.5)
-            canvas.drawString(self.leftMargin, height - 11.5 * mm, "ZiloCart • ApBot Complete Project Documentation")
-            canvas.drawRightString(width - self.rightMargin, height - 11.5 * mm, "Version 3.0 • 19 August 2026")
             canvas.line(self.leftMargin, 13 * mm, width - self.rightMargin, 13 * mm)
-            canvas.drawString(self.leftMargin, 8.5 * mm, "AI/ML E-Commerce Assistant and Recommendation System")
-            canvas.drawRightString(width - self.rightMargin, 8.5 * mm, f"Page {doc.page}")
+            canvas.setFillColor(MUTED)
+            canvas.setFont(BODY_FONT, 7.1)
+            canvas.drawString(self.leftMargin, 8.5 * mm, "AI/ML E-COMMERCE ASSISTANT  •  RECOMMENDATION SYSTEM")
+            canvas.setFillColor(ORANGE)
+            canvas.setFont(BOLD_FONT, 7.4)
+            canvas.drawRightString(width - self.rightMargin, 8.5 * mm, f"{doc.page:02d}")
         canvas.restoreState()
 
     def afterFlowable(self, flowable):
@@ -162,7 +189,7 @@ def styles():
     s = getSampleStyleSheet()
     s.add(ParagraphStyle(
         "CoverKicker", parent=s["Normal"], fontName=BOLD_FONT, fontSize=10,
-        leading=14, textColor=CYAN, alignment=TA_CENTER, spaceAfter=8,
+        leading=14, textColor=AMBER, alignment=TA_CENTER, spaceAfter=8,
     ))
     s.add(ParagraphStyle(
         "CoverTitle", parent=s["Title"], fontName=BOLD_FONT, fontSize=29,
@@ -183,7 +210,7 @@ def styles():
     ))
     s.add(ParagraphStyle(
         "H2", parent=s["Heading2"], fontName=BOLD_FONT, fontSize=12.3,
-        leading=16, textColor=BLUE, spaceBefore=8, spaceAfter=4,
+        leading=16, textColor=colors.HexColor("#D95D00"), spaceBefore=8, spaceAfter=4,
         keepWithNext=True,
     ))
     s.add(ParagraphStyle(
@@ -192,12 +219,12 @@ def styles():
         keepWithNext=True,
     ))
     s.add(ParagraphStyle(
-        "Body", parent=s["BodyText"], fontName=BODY_FONT, fontSize=8.65,
-        leading=13.2, textColor=INK, spaceAfter=5.2, alignment=TA_LEFT,
+        "Body", parent=s["BodyText"], fontName=BODY_FONT, fontSize=8.9,
+        leading=13.6, textColor=INK, spaceAfter=5.5, alignment=TA_LEFT,
     ))
     s.add(ParagraphStyle(
-        "BulletCustom", parent=s["BodyText"], fontName=BODY_FONT, fontSize=8.55,
-        leading=12.7, textColor=INK, leftIndent=11, firstLineIndent=-7,
+        "BulletCustom", parent=s["BodyText"], fontName=BODY_FONT, fontSize=8.75,
+        leading=13.0, textColor=INK, leftIndent=11, firstLineIndent=-7,
         bulletIndent=1.5, spaceAfter=2.4,
     ))
     s.add(ParagraphStyle(
@@ -210,12 +237,12 @@ def styles():
         leading=10, textColor=MUTED, alignment=TA_CENTER, spaceBefore=3, spaceAfter=8,
     ))
     s.add(ParagraphStyle(
-        "TableHead", parent=s["Normal"], fontName=BOLD_FONT, fontSize=7.15,
-        leading=9.4, textColor=WHITE,
+        "TableHead", parent=s["Normal"], fontName=BOLD_FONT, fontSize=7.45,
+        leading=9.8, textColor=WHITE,
     ))
     s.add(ParagraphStyle(
-        "TableCell", parent=s["Normal"], fontName=BODY_FONT, fontSize=6.95,
-        leading=9.25, textColor=INK,
+        "TableCell", parent=s["Normal"], fontName=BODY_FONT, fontSize=7.25,
+        leading=9.7, textColor=INK,
     ))
     return s
 
@@ -238,28 +265,33 @@ def paragraph(text: str, style="Body") -> Paragraph:
 
 
 def make_cover():
-    return [
-        Spacer(1, 45 * mm),
+    cover: list[Flowable] = [Spacer(1, 21 * mm)]
+    if LOGO.exists():
+        logo = Image(str(LOGO), width=49 * mm, height=43 * mm)
+        logo.hAlign = "CENTER"
+        cover.extend([logo, Spacer(1, 6 * mm)])
+    cover.extend([
         Paragraph("COMPLETE IMPLEMENTATION REPORT", STYLES["CoverKicker"]),
         Paragraph("ZiloCart", STYLES["CoverTitle"]),
         Paragraph("ApBot E-Commerce Assistant<br/>and Product Recommendation System", STYLES["CoverSubtitle"]),
-        Spacer(1, 12 * mm),
-        HRFlowable(width="55%", thickness=1.2, color=CYAN, hAlign="CENTER"),
-        Spacer(1, 10 * mm),
+        Spacer(1, 9 * mm),
+        HRFlowable(width="50%", thickness=1.5, color=ORANGE, hAlign="CENTER"),
+        Spacer(1, 8 * mm),
         Paragraph(
             "SRS Requirements • Full-Stack Design • Data Architecture<br/>"
             "Content, Collaborative & Hybrid Recommendations • ApBot Integration",
             STYLES["CoverMeta"],
         ),
-        Spacer(1, 27 * mm),
+        Spacer(1, 18 * mm),
         Paragraph("PROJECT TEAM", STYLES["CoverKicker"]),
         Paragraph("Mohammad Hamza • Ibrahim Bawany • Usman Bawany • Yousuf", STYLES["CoverMeta"]),
-        Spacer(1, 13 * mm),
+        Spacer(1, 10 * mm),
         Paragraph("Version 3.0  •  19 August 2026", STYLES["CoverMeta"]),
-        Spacer(1, 4 * mm),
+        Spacer(1, 3 * mm),
         Paragraph("Prepared against the supplied ApBot SRS and complete repository", STYLES["CoverMeta"]),
         PageBreak(),
-    ]
+    ])
+    return cover
 
 
 def parse_table(lines: list[str], available_width: float) -> Table:
@@ -281,7 +313,16 @@ def parse_table(lines: list[str], available_width: float) -> Table:
     if ncols == 2:
         col_widths = [available_width * 0.29, available_width * 0.71]
     elif ncols == 3:
-        col_widths = [available_width * 0.20, available_width * 0.60, available_width * 0.20]
+        headers = [cell.strip().lower() for cell in raw_rows[0]]
+        if headers[0] in {"id", "#"}:
+            ratios = (0.12, 0.44, 0.44)
+        elif headers[-1] == "resolution":
+            ratios = (0.25, 0.35, 0.40)
+        elif headers[-1] in {"status", "coverage"}:
+            ratios = (0.22, 0.60, 0.18)
+        else:
+            ratios = (0.28, 0.44, 0.28)
+        col_widths = [available_width * ratio for ratio in ratios]
     else:
         col_widths = [available_width / ncols] * ncols
     table = Table(data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
@@ -335,6 +376,11 @@ def render_markdown() -> list[Flowable]:
             code_lines.append(line)
             i += 1
             continue
+        if stripped == "[[PAGEBREAK]]":
+            flush_paragraph()
+            story.append(PageBreak())
+            i += 1
+            continue
         if stripped.startswith("|") and i + 1 < len(lines) and lines[i + 1].strip().startswith("|"):
             flush_paragraph()
             table_lines = []
@@ -383,7 +429,7 @@ def render_markdown() -> list[Flowable]:
             if story and len(story) > len(make_cover()):
                 story.append(CondPageBreak(58 * mm))
             story.append(Paragraph(inline_markup(stripped[2:]), STYLES["H1"]))
-            story.append(HRFlowable(width="100%", thickness=1.2, color=CYAN, spaceAfter=6))
+            story.append(HRFlowable(width="100%", thickness=1.35, color=ORANGE, spaceAfter=7))
         elif re.match(r"^[-*] ", stripped):
             flush_paragraph()
             story.append(Paragraph("• " + inline_markup(stripped[2:]), STYLES["BulletCustom"]))

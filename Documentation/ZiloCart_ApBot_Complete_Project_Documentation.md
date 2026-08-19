@@ -930,6 +930,8 @@ Monitor application errors, request latency, SQL connection/query failures, auth
 
 ---
 
+[[PAGEBREAK]]
+
 # 24. Website Working Screenshots and Evidence
 
 This section is reserved for final screenshots captured from the configured, running application. Each labelled frame specifies exactly what should be visible and explains the implementation evidence demonstrated by that image. Replace a placeholder by inserting the screenshot at the same position in this Markdown source, then regenerate the PDF. Screenshots should use realistic demonstration data but must not expose passwords, reset tokens, connection strings or another customer's private information.
@@ -942,6 +944,8 @@ This section is reserved for final screenshots captured from the configured, run
 
 **Detailed description:** This screenshot proves that the Flask home route, Jinja storefront components, SQL catalogue and recommendation orchestration operate together. For a user represented in the collaborative matrix, the first candidates are based on similar-user behaviour. A recent MongoDB product view may add content-based candidates. Duplicate IDs are removed and trending products fill remaining positions. Anonymous or cold-start users receive the safe popularity fallback, so the section remains populated even when personal data or optional artifacts are unavailable.
 
+[[PAGEBREAK]]
+
 ## 24.2 Product Catalogue Search, Filters and Sorting
 
 [[SCREENSHOT:Figure 6 — Product catalogue with active search and filter controls]]
@@ -949,6 +953,8 @@ This section is reserved for final screenshots captured from the configured, run
 **Screenshot instructions:** Open `/products`, enter a meaningful keyword and apply at least one category/brand, price or rating filter. Keep the selected controls, result count and matching cards visible. A second capture may be inserted if desktop and mobile filter layouts both require evidence.
 
 **Detailed description:** This view demonstrates deterministic catalogue discovery independently of the chatbot. Flask translates approved controls into parameterized SQL predicates and allowlisted sort expressions. Returned products are passed through common preparation logic, which resolves a primary image and derives active sale pricing. The result therefore validates search correctness, safe query construction, responsive presentation and consistent price/image treatment.
+
+[[PAGEBREAK]]
 
 ## 24.3 Product Detail and Content-Based Recommendations
 
@@ -958,6 +964,8 @@ This section is reserved for final screenshots captured from the configured, run
 
 **Detailed description:** This screenshot connects a live SQL product to the content recommendation pipeline. The source product ID maps to the combined normalized feature matrix containing TF-IDF/SVD text features and scaled price/rating features. Cosine KNN supplies nearby product IDs, which are reloaded from SQL and displayed as current catalogue records. If artifacts are unavailable, the page remains functional through same-category/brand or trending fallbacks.
 
+[[PAGEBREAK]]
+
 ## 24.4 ApBot Welcome and Chat Interface
 
 [[SCREENSHOT:Figure 8 — ApBot launcher, welcome prompt and expanded conversation window]]
@@ -965,6 +973,8 @@ This section is reserved for final screenshots captured from the configured, run
 **Screenshot instructions:** Capture the compact greeting near the launcher and the expanded widget after opening it. Include the header, quick actions, readable message history and input control. Do not show browser developer tools or raw intent/confidence values in this customer-facing screenshot.
 
 **Detailed description:** The image demonstrates that ApBot is integrated into the host website rather than operating only in a notebook or terminal. The reusable Jinja partial inserts the widget throughout the storefront. Dedicated CSS provides desktop/mobile behavior, while JavaScript controls opening, movement, keyboard input, typing state and relative requests to `/api/chat`. Technical classification fields remain hidden to preserve a natural customer experience.
+
+[[PAGEBREAK]]
 
 ## 24.5 ApBot Product Search and Recommendation Cards
 
@@ -974,6 +984,8 @@ This section is reserved for final screenshots captured from the configured, run
 
 **Detailed description:** This is the principal evidence for end-to-end AI integration. The browser posts JSON, NLTK tokenisation/stemming creates a Bag-of-Words vector and the Keras model predicts an intent. Flask then applies a controlled handler, extracts useful search/budget terms or calls recommendation functions, fetches live products and serializes at most three safe cards. Product URLs lead back into the ordinary storefront and promotion prices match the rest of the site.
 
+[[PAGEBREAK]]
+
 ## 24.6 Cart and Checkout Workflow
 
 [[SCREENSHOT:Figure 10 — Shopping cart and checkout form with validated totals]]
@@ -981,6 +993,8 @@ This section is reserved for final screenshots captured from the configured, run
 **Screenshot instructions:** Capture a cart containing multiple quantities and, separately or in one composite image, the checkout form. Include item names, effective unit prices, quantity controls, subtotal/total, stock feedback, address and phone fields. Never use a real private address or phone number in submitted project evidence.
 
 **Detailed description:** The cart is stored in the signed Flask session but each display reloads authoritative product records, stock and promotion prices. Checkout validates authentication, non-empty cart, quantities, address, phone and live inventory before inserting the order and line items. The purchase-time effective price is stored in `OrderItems`, inventory is decremented and the successful transaction clears the cart.
+
+[[PAGEBREAK]]
 
 ## 24.7 Order History and ApBot Order Tracking
 
@@ -990,6 +1004,8 @@ This section is reserved for final screenshots captured from the configured, run
 
 **Detailed description:** This evidence confirms that checkout data can be retrieved through both structured pages and conversational assistance. The history route is login-protected and scoped to the current user. ApBot's tracking handler also reads the signed session rather than trusting a user ID supplied in the message or JSON; its SQL query selects only that customer's latest order. This demonstrates the project's customer privacy boundary.
 
+[[PAGEBREAK]]
+
 ## 24.8 Administration Dashboard and Reports
 
 [[SCREENSHOT:Figure 12 — Role-protected administration dashboard and analytics reports]]
@@ -997,6 +1013,8 @@ This section is reserved for final screenshots captured from the configured, run
 **Screenshot instructions:** Sign in with the demonstration administrator account. Capture the dashboard/navigation and a report region containing daily sales, category revenue, product performance or activity summaries. Do not expose password hashes, reset tokens or environment configuration.
 
 **Detailed description:** The screenshot verifies role-based access and store governance. Administrator routes recheck login, active status and the `admin` role. SQL aggregations provide order/revenue/product/customer information, while MongoDB adds optional activity summaries when available. Product, order, user and review management views demonstrate that the data used by customers and models can be maintained through protected interfaces.
+
+[[PAGEBREAK]]
 
 ## 24.9 Mobile Responsive Experience
 
