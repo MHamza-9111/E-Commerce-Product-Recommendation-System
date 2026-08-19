@@ -4,7 +4,7 @@ ZiloCart is a full-stack Flask e-commerce application that combines a responsive
 
 ApBot is the primary conversational AI component required by the supplied SRS. It uses **NLTK preprocessing**, a binary **Bag-of-Words** representation, and a trained **TensorFlow/Keras intent classifier** exposed through a Flask REST endpoint. Recommendation models are integrated as supporting product-discovery features.
 
-> **Repository:** [MHamza-9111/E-Commerce-Product-Recommendation-System](https://github.com/MHamza-9111/E-Commerce-Product-Recommendation-System)
+> **Repository:** [MHamza-9111/E-Commerce-Product-Recommendation-System](https://github.com/MHamza-9111/ZiloCart_AI-Powered-Ecommerce-Store)](https://github.com/MHamza-9111/ZiloCart_AI-Powered-Ecommerce-Store)
 ---
 
 ## Contents
