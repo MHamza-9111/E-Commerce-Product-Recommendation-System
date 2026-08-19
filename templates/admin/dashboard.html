@@ -11,6 +11,7 @@
     <nav class="admin-nav" aria-label="Admin sections">
         <a href="{{ url_for('admin_products') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-package"></use></svg>Products</a>
         <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-truck"></use></svg>Orders</a>
+        <a href="{{ url_for('admin_support') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-headphones"></use></svg>Support</a>
         <a href="{{ url_for('admin_users') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-users"></use></svg>Users</a>
         <a href="{{ url_for('admin_reviews') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-star"></use></svg>Reviews</a>
         <a href="{{ url_for('admin_reports') }}" class="btn btn-primary"><svg class="ui-icon"><use href="#icon-chart"></use></svg>Analytics</a>
@@ -68,6 +69,7 @@
             <div class="d-grid gap-2">
                 <a href="{{ url_for('add_product') }}" class="btn btn-primary"><svg class="ui-icon"><use href="#icon-plus"></use></svg>Add a new product</a>
                 <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-primary"><svg class="ui-icon"><use href="#icon-truck"></use></svg>Review all orders</a>
+                <a href="{{ url_for('admin_support') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-headphones"></use></svg>Review support cases</a>
                 <a href="{{ url_for('admin_users') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-users"></use></svg>Manage users</a>
                 <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-dark"><svg class="ui-icon"><use href="#icon-chart"></use></svg>Open analytics</a>
             </div>

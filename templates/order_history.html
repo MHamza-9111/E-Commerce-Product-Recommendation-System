@@ -3,8 +3,40 @@
 
 {% block content %}
 <div class="section-heading mt-0">
-    <h2>My Orders</h2>
+    <div>
+        <h2 class="mb-1">My Purchases</h2>
+        <p class="text-muted mb-0">Products are shown by name; the reference is only for support.</p>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="tel:{{ support_phone|replace('-', '') }}">
+        Call support: {{ support_phone }}
+    </a>
 </div>
+
+{% if support_tickets %}
+<div class="shop-surface p-3 mb-4" aria-labelledby="support-cases-heading">
+    <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+        <div>
+            <h3 class="h5 fw-800 mb-1" id="support-cases-heading">Return & support cases</h3>
+            <p class="text-muted small mb-0">Updates for issues opened through ApBot.</p>
+        </div>
+        <span class="small text-muted">Returns: eligible within {{ return_window_days }} days of delivery</span>
+    </div>
+    <div class="row g-2">
+        {% for ticket in support_tickets %}
+        <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="d-flex justify-content-between gap-2">
+                    <strong>{{ ticket.product_name or 'Order support' }}</strong>
+                    <span class="badge text-bg-light">{{ ticket.status }}</span>
+                </div>
+                <div class="small text-muted mt-1">Case RTN-{{ '%06d'|format(ticket.id) }} · {{ ticket.issue_type|replace('_', ' ')|title }}</div>
+                <p class="small mb-0 mt-2">{{ ticket.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 {% if orders %}
 <div class="vstack gap-4">
@@ -14,8 +46,9 @@
         <div class="order-header d-flex flex-wrap justify-content-between align-items-center gap-3 px-4 py-3">
             <div class="d-flex flex-wrap gap-4 align-items-center">
                 <div>
-                    <div class="order-label">Order</div>
-                    <div class="order-value">#{{ order.id }}</div>
+                    <div class="order-label">Products</div>
+                    <div class="order-value" style="max-width:300px;">{{ order.display_name }}</div>
+                    <div class="text-muted" style="font-size:.68rem;">Support reference #{{ order.id }}</div>
                 </div>
                 <div>
                     <div class="order-label">Date</div>

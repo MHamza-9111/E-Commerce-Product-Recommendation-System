@@ -117,13 +117,14 @@
                 <!-- Order meta -->
                 <div class="min-w-0">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <span class="fw-800" style="font-size:0.95rem;">Order #{{ order.order_id }}</span>
+                        <span class="fw-800" style="font-size:0.95rem;">{{ order.display_name }}</span>
                         <span class="order-status-badge {{ sc.get(order.status, 'status-placed') }}">
                             <span class="status-dot" aria-hidden="true"></span>{{ order.status }}
                         </span>
                     </div>
                     <div class="ogc-sub">
                         {{ order.order_date.strftime('%d %b %Y') if order.order_date else '' }}
+                        &nbsp;·&nbsp; Ref #{{ order.order_id }}
                         &nbsp;·&nbsp;
                         {{ order.products|length }} item{{ 's' if order.products|length != 1 else '' }}
                         &nbsp;·&nbsp;

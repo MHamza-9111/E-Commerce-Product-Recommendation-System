@@ -186,13 +186,16 @@
             checkout: ["Continue to checkout", urls.checkout],
             payment: ["Continue to checkout", urls.checkout],
             shipping: ["View delivery details", urls.checkout],
+            returns: ["View my purchases and return cases", urls.orders],
             account: ["Manage my account", urls.profile]
         };
         return actions[intent] || null;
     }
 
-    function addIntentAction(intent) {
-        const action = getIntentAction(intent);
+    function addIntentAction(intent, serverAction) {
+        const action = serverAction && serverAction.label && serverAction.url
+            ? [serverAction.label, serverAction.url]
+            : getIntentAction(intent);
         if (!action || !action[1]) return;
 
         const row = document.createElement("div");
@@ -248,7 +251,7 @@
 
             addMessage(data.reply, "bot");
             addProductCards(data.products);
-            addIntentAction(data.intent);
+            addIntentAction(data.intent, data.action);
         } catch (error) {
             typingIndicator.remove();
             addMessage("We could not reach the assistant just now. Please try again in a moment.", "bot");

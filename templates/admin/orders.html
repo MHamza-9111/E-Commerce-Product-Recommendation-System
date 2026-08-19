@@ -58,7 +58,10 @@
                         <div class="fw-600">{{ order.user_name }}</div>
                         <div class="text-muted small">{{ order.user_email }}</div>
                     </td>
-                    <td>{{ order.item_count }} item{{ 's' if order.item_count != 1 else '' }}</td>
+                    <td style="min-width:220px;">
+                        <div class="fw-600">{{ order.product_names or 'No product details' }}</div>
+                        <div class="text-muted small">{{ order.item_count }} unit{{ 's' if order.item_count != 1 else '' }}</div>
+                    </td>
                     <td class="price fw-700">Rs {{ "%.2f"|format(order.total_amount) }}</td>
                     <td class="text-muted small">{{ order.order_date.strftime('%d %b %Y') if order.order_date else '—' }}</td>
                     <td style="max-width:160px;">

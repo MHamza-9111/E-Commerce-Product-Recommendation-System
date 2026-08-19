@@ -208,7 +208,7 @@ Natural-language accuracy depends on representative patterns. Bag of Words disca
 | Give product details | Product intents search the SQL catalogue and return details/cards | Implemented |
 | Suggest similar alternatives | Similar-products intent plus content KNN/product search | Implemented |
 | Human representative guidance | `contact_support` response family | Implemented as guidance |
-| Pattern matching dataset | `chatbot/intents.json`: 21 tags, 1,065 patterns and response groups | Implemented |
+| Pattern matching dataset | `chatbot/intents.json`: 21 tags, 1,073 patterns and response groups | Implemented |
 | NLU and intent classification | Neural classifier maps a message to a class and confidence | Implemented |
 | NLP/tokenisation | `wordpunct_tokenize`, lowercasing, alphabetic filtering and Porter stemming | Implemented |
 | Word vectorisation | Binary Bag-of-Words in training and runtime | Implemented |
@@ -372,6 +372,7 @@ The widget posts a bounded text message. Runtime preprocessing must match traini
 | Orders | `id`, `user_id`, `total_amount`, `status`, `order_date`, address, phone | Order header and fulfilment state |
 | OrderItems | `id`, `order_id`, `product_id`, `quantity`, `price` | Purchased line items and historical purchase price |
 | Reviews | `id`, `user_id`, `product_id`, `rating`, `comment`, `created_at` | Explicit feedback and displayed product quality |
+| SupportTickets | `id`, customer/order/product references, issue type, description, status and timestamps | Return and post-purchase cases opened by ApBot and managed by administrators |
 
 ## 8.2 Relationships and Integrity
 
@@ -569,7 +570,7 @@ Python pickle files can execute code during loading. Only trusted internally gen
 
 ## 14.1 Dataset Structure
 
-`chatbot/intents.json` contains **21 intent classes and 1,065 conversational patterns** with multiple approved responses. Each item has a `tag`, `patterns` list and `responses` list.
+`chatbot/intents.json` contains **21 intent classes and 1,073 conversational patterns** with multiple approved responses. Each item has a `tag`, `patterns` list and `responses` list.
 
 | Intent group | Tags |
 |---|---|
@@ -655,7 +656,9 @@ The browser UI deliberately displays the customer-facing reply/cards but hides i
 | product_search/details/similar/comparison | Search message terms/budget and return up to three cards; trending fallback |
 | offers | Active sale summary and discounted cards; affordable products outside sale |
 | cart | Login check, cart quantity and products |
-| order_tracking | Active customer's latest order only |
+| order_tracking | Matches product words against the active customer's purchases and returns real product names/status |
+| returns | Explains policy or creates a deduplicated return case for a matched purchased product |
+| contact_support | Returns the configured toll-free phone, email and support hours |
 | checkout | Login/cart readiness check |
 | account | Active customer's own name/email only |
 | unknown | Professional scope response |
@@ -1049,7 +1052,7 @@ This section is reserved for final screenshots captured from the configured, run
 | `Main_Data_Pipeline.ipynb` | Recommendation extraction, EDA, training and evaluation |
 | `chatbot/Chatbot_Training.ipynb` | ApBot dataset preparation, training and evaluation |
 | `chatbot/engine.py` | Runtime NLP, inference and response selection |
-| `chatbot/intents.json` | 21 intents, 1,065 patterns and approved responses |
+| `chatbot/intents.json` | 21 intents, 1,073 patterns and approved responses |
 | `chatbot/*.keras`, `chatbot/*.pkl` | ApBot model, vocabulary and classes |
 | Root recommendation `.pkl` files | Content/collaborative/hybrid serving artifacts |
 | `templates/` | Storefront, identity, cart/order, admin and chat HTML |
@@ -1149,6 +1152,7 @@ HTTP status: `400`.
 | Admin users | `/admin/users`, `/admin/users/<id>/status`, `/admin/users/<id>/delete` |
 | Admin reviews | `/admin/reviews`, `/admin/reviews/<id>/delete`, `/admin/reviews/delete_all` |
 | Admin analytics | `/admin/reports` |
+| Admin support | `/admin/support`, `/admin/support/<ticket_id>/status` |
 
 All state-changing operations should remain POST-only and gain CSRF protection before production.
 

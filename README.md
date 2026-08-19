@@ -135,7 +135,7 @@ flowchart LR
 The file [`chatbot/intents.json`](chatbot/intents.json) contains:
 
 - **21 intent classes**
-- **1,065 conversational patterns**
+- **1,073 conversational patterns**
 - multiple approved responses per intent
 
 Implemented intent tags:
@@ -247,8 +247,15 @@ ApBot may access:
 
 - public product and sale information;
 - the current session cart;
-- the signed-in customer's latest order; and
+- the signed-in customer's recent orders and real product names;
+- the signed-in customer's own return/support cases; and
 - the signed-in customer's own name/email for account guidance.
+
+### Product-first order and return support
+
+Order replies identify purchases by product name (for example, **Wireless Headphones Pro**) instead of forcing customers to find an internal order number. Messages such as `my headphone order received damaged; I want to return it` are routed through deterministic post-purchase rules, matched only against the active customer's purchases, and create a deduplicated `RTN-xxxxxx` support case. If a product is ambiguous, ApBot lists the customer's recent product names and asks for the exact name. Cases are visible on **My Purchases** and manageable under **Admin → Support**.
+
+Customer-care details are configured with `SUPPORT_PHONE`, `SUPPORT_EMAIL`, `SUPPORT_HOURS`, and `RETURN_WINDOW_DAYS`. Replace the demonstration defaults with verified production contact information.
 
 ApBot must not list, search, or expose another customer's private records. Admin data remains protected by role checks and is not returned through the customer chatbot.
 
@@ -354,7 +361,7 @@ E-Commerce-Product-Recommendation-System/
 ├── requirements-notebook.txt      # Additional Jupyter/visualisation packages
 ├── README.md                       # Detailed GitHub repository guide
 ├── chatbot/
-│   ├── intents.json               # 21 intents and 1,065 patterns
+│   ├── intents.json               # 21 intents and 1,073 patterns
 │   ├── Chatbot_Training.ipynb     # ApBot training workflow
 │   ├── engine.py                  # ApBot runtime engine
 │   ├── chatbot_model.keras        # Trained intent model

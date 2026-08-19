@@ -14,6 +14,13 @@ import pickle as pkl
 import numpy as np
 
 from chatbot.engine import chatbot_reply
+from chatbot.support import (
+    RETURN_INCIDENT_WORDS,
+    classify_return_issue,
+    detect_commerce_intent,
+    match_order_items,
+    product_name_summary,
+)
 
 
 load_dotenv()
@@ -31,6 +38,14 @@ ALLOWED_PROFILE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 ALLOWED_PRODUCT_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PRODUCT_UPLOAD_FOLDER"], exist_ok=True)
+
+# Public support details are configurable so deployments can use a verified
+# number/address without changing chatbot code. The defaults are the ZiloCart
+# demonstration helpdesk values used throughout the UI.
+SUPPORT_PHONE = os.getenv("SUPPORT_PHONE", "0800-94562")
+SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@zilocart.pk")
+SUPPORT_HOURS = os.getenv("SUPPORT_HOURS", "Monday–Saturday, 9:00 AM–8:00 PM PKT")
+RETURN_WINDOW_DAYS = int(os.getenv("RETURN_WINDOW_DAYS", "14"))
 
 # Seasonal promotion used across the storefront, checkout and ApBot. Different
 # products receive different discounts while the original catalog price remains
@@ -69,8 +84,13 @@ def get_active_sale():
 
 @app.context_processor
 def inject_storefront_promotion():
-    """Make promotion information available to every Jinja template."""
-    return {"active_sale": get_active_sale()}
+    """Make promotion and verified support information available to templates."""
+    return {
+        "active_sale": get_active_sale(),
+        "support_phone": SUPPORT_PHONE,
+        "support_email": SUPPORT_EMAIL,
+        "support_hours": SUPPORT_HOURS,
+    }
 
 
 @app.errorhandler(404)
@@ -154,6 +174,25 @@ def ensure_database_schema():
             IF COL_LENGTH('Products', 'extra_images') IS NULL
             BEGIN
                 ALTER TABLE Products ADD extra_images NVARCHAR(MAX) NULL;
+            END
+            IF OBJECT_ID('SupportTickets', 'U') IS NULL
+            BEGIN
+                CREATE TABLE SupportTickets (
+                    id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    order_id INT NULL,
+                    product_id INT NULL,
+                    issue_type VARCHAR(30) NOT NULL,
+                    description NVARCHAR(1000) NOT NULL,
+                    status VARCHAR(30) NOT NULL CONSTRAINT DF_SupportTickets_Status DEFAULT 'Open',
+                    created_at DATETIME NOT NULL CONSTRAINT DF_SupportTickets_Created DEFAULT GETDATE(),
+                    updated_at DATETIME NOT NULL CONSTRAINT DF_SupportTickets_Updated DEFAULT GETDATE(),
+                    CONSTRAINT FK_SupportTickets_Users FOREIGN KEY (user_id) REFERENCES Users(id),
+                    CONSTRAINT FK_SupportTickets_Orders FOREIGN KEY (order_id) REFERENCES Orders(id),
+                    CONSTRAINT FK_SupportTickets_Products FOREIGN KEY (product_id) REFERENCES Products(id)
+                );
+                CREATE INDEX IX_SupportTickets_UserCreated
+                    ON SupportTickets(user_id, created_at DESC);
             END
             IF NOT EXISTS (
                 SELECT 1 FROM sys.indexes
@@ -917,6 +956,87 @@ def find_products_for_chat(message, limit=3):
     return products[:limit]
 
 
+# ====================== APBOT ORDER & SUPPORT HELPERS ======================
+def get_customer_order_items_for_chat(user_id, limit=60):
+    """Return recent purchases with real product names, scoped to one customer."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT TOP (?)
+                o.id AS order_id, o.order_date, o.status AS order_status,
+                o.total_amount, oi.quantity, oi.price AS purchase_price,
+                p.id, p.name, p.brand, p.category, p.description,
+                p.price, p.rating, p.stock, p.image_url, p.local_image,
+                p.extra_images
+            FROM Orders o
+            JOIN OrderItems oi ON oi.order_id = o.id
+            JOIN Products p ON p.id = oi.product_id
+            WHERE o.user_id = ?
+            ORDER BY o.order_date DESC, o.id DESC, oi.id ASC
+            """,
+            limit, user_id,
+        )
+        items = rows_to_dicts(cursor)
+    for item in items:
+        prepare_product(item)
+    return items
+
+
+def group_order_items(items):
+    orders = []
+    by_id = {}
+    for item in items:
+        order = by_id.get(item["order_id"])
+        if order is None:
+            order = {
+                "id": item["order_id"], "order_date": item["order_date"],
+                "status": item["order_status"], "total_amount": item["total_amount"],
+                "items": [],
+            }
+            by_id[item["order_id"]] = order
+            orders.append(order)
+        order["items"].append(item)
+    return orders
+
+
+def create_or_reuse_support_ticket(user_id, item, issue_type, description):
+    """Create one actionable support case, reusing an existing open case."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT TOP 1 id, status FROM SupportTickets
+            WHERE user_id = ? AND order_id = ? AND product_id = ?
+              AND issue_type = ? AND status IN ('Open', 'In Review')
+            ORDER BY created_at DESC
+            """,
+            user_id, item["order_id"], item["id"], issue_type,
+        )
+        existing = cursor.fetchone()
+        if existing:
+            return int(existing[0]), existing[1], False
+        cursor.execute(
+            """
+            INSERT INTO SupportTickets
+                (user_id, order_id, product_id, issue_type, description, status)
+            OUTPUT INSERTED.id, INSERTED.status
+            VALUES (?, ?, ?, ?, ?, 'Open')
+            """,
+            user_id, item["order_id"], item["id"], issue_type, description[:1000],
+        )
+        ticket = cursor.fetchone()
+        conn.commit()
+    return int(ticket[0]), ticket[1], True
+
+
+def support_contact_text():
+    return (
+        f"Call our toll-free helpline {SUPPORT_PHONE} or email {SUPPORT_EMAIL}. "
+        f"Support hours: {SUPPORT_HOURS}."
+    )
+
+
 @app.route("/api/chat", methods=["POST"])
 def chatbot_api():
     data = request.get_json(silent=True) or {}
@@ -938,9 +1058,23 @@ def chatbot_api():
         }), 400
 
     result = chatbot_reply(message)
-    intent = result.get("intent", "unknown")
+    predicted_intent = result.get("intent", "unknown")
+    pending_context = session.get("apbot_context") or {}
+    detected_intent = detect_commerce_intent(message, predicted_intent)
+    if any(phrase in message.casefold() for phrase in ("never mind", "nevermind", "start over")):
+        session.pop("apbot_context", None)
+        pending_context = {}
+    if (
+        pending_context.get("flow") == "return_product"
+        and detected_intent in {"unknown", "product_search", "product_details", "returns"}
+    ):
+        intent = "returns"
+    else:
+        intent = detected_intent
+    result["intent"] = intent
     result["reply"] = result.get("reply", "").replace("Cartify", "ZiloCart")
     result["products"] = []
+    result["action"] = None
 
     if intent == "unknown":
         result["reply"] = (
@@ -997,30 +1131,117 @@ def chatbot_api():
             result["reply"] = f"Your cart contains {quantity_total} item(s)."
             result["products"] = serialize_chat_products(products)
 
-    elif intent == "order_tracking":
+    elif intent == "contact_support":
+        result["reply"] = (
+            "You can reach a ZiloCart customer-care representative directly. "
+            + support_contact_text()
+            + " For an order issue, sign in and tell me the product name—"
+              "you do not need to find or type an order number."
+        )
+        result["action"] = {
+            "label": f"Call {SUPPORT_PHONE}",
+            "url": "tel:" + re.sub(r"[^0-9+]", "", SUPPORT_PHONE),
+        }
+
+    elif intent == "returns":
         if not session.get("user_id"):
-            result["reply"] = "Please sign in to view your order status."
+            result["reply"] = (
+                "Please sign in so I can securely match the damaged or returned product "
+                "to your own purchase. " + support_contact_text()
+            )
+            result["action"] = {"label": "Sign in to continue", "url": url_for("login")}
         else:
-            with get_db_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT TOP 1 id, status, order_date, total_amount
-                    FROM Orders
-                    WHERE user_id = ?
-                    ORDER BY order_date DESC, id DESC
-                    """,
-                    session["user_id"],
-                )
-                order = cursor.fetchone()
-            if order:
-                order_date = order[2].strftime("%d %b %Y") if order[2] else "recently"
+            purchased_items = get_customer_order_items_for_chat(session["user_id"])
+            if not purchased_items:
+                session.pop("apbot_context", None)
                 result["reply"] = (
-                    f"Your latest order #{order[0]}, placed {order_date}, is currently "
-                    f"{order[1].lower()}. Total: Rs {float(order[3]):,.2f}."
+                    "I could not find a purchase on your account. If you used another "
+                    "account, sign in with it, or " + support_contact_text().lower()
                 )
             else:
-                result["reply"] = "You do not have any orders yet."
+                matches = match_order_items(message, purchased_items)
+                # A generic policy question must not create a case. A concrete
+                # damage statement, a product-specific return, or the reply to our
+                # product clarification is actionable.
+                text = message.casefold()
+                severe_issue = any(term in text for term in (
+                    "damaged", "damage", "damged", "broken", "defective", "faulty",
+                    "not working", "wrong item", "wrong product", "missing",
+                ))
+                requested_return = any(term in text for term in ("return", "refund", "exchange"))
+                incident = (
+                    pending_context.get("flow") == "return_product"
+                    or severe_issue
+                    or (requested_return and bool(matches))
+                )
+                if len(matches) == 1 and incident:
+                    item = matches[0]
+                    issue_type = classify_return_issue(message)
+                    ticket_id, ticket_status, created = create_or_reuse_support_ticket(
+                        session["user_id"], item, issue_type, message,
+                    )
+                    session.pop("apbot_context", None)
+                    order_date = item["order_date"].strftime("%d %b %Y") if item.get("order_date") else "recently"
+                    verb = "opened" if created else "found your existing"
+                    result["reply"] = (
+                        f"I'm sorry your {item['name']} arrived with a problem. I {verb} "
+                        f"return case RTN-{ticket_id:06d} for {item['name']}, purchased {order_date}. "
+                        f"Status: {ticket_status}. Keep the product and packaging, and do not ship it "
+                        f"until support confirms the return instructions. {support_contact_text()}"
+                    )
+                    result["products"] = serialize_chat_products([item], 1)
+                    result["action"] = {"label": "View my return case", "url": url_for("order_history")}
+                elif len(matches) > 1:
+                    session["apbot_context"] = {"flow": "return_product"}
+                    choices = product_name_summary(matches, 5)
+                    result["reply"] = (
+                        f"I found more than one matching purchase: {choices}. "
+                        "Please reply with the exact product name shown here, and I will open the return case."
+                    )
+                    result["products"] = serialize_chat_products(matches, 3)
+                elif incident:
+                    session["apbot_context"] = {"flow": "return_product"}
+                    choices = product_name_summary(purchased_items, 5)
+                    result["reply"] = (
+                        "I can open the return request, but I need to match the correct purchase. "
+                        f"Your recent products are: {choices}. Reply with the product name—for example, "
+                        "‘Wireless Headphones Pro’—not an order number."
+                    )
+                    result["products"] = serialize_chat_products(purchased_items, 3)
+                else:
+                    session.pop("apbot_context", None)
+                    result["reply"] = (
+                        f"ZiloCart accepts eligible returns within {RETURN_WINDOW_DAYS} days of delivery. "
+                        "For a damaged, defective, wrong or missing item, tell me what happened and the "
+                        "product name; I can match it to your purchase and open a case. "
+                        + support_contact_text()
+                    )
+                    result["action"] = {"label": "View my purchases", "url": url_for("order_history")}
+
+    elif intent == "order_tracking":
+        if not session.get("user_id"):
+            result["reply"] = "Please sign in so I can securely show the names and status of your products."
+            result["action"] = {"label": "Sign in to track products", "url": url_for("login")}
+        else:
+            purchased_items = get_customer_order_items_for_chat(session["user_id"])
+            orders = group_order_items(purchased_items)
+            matches = match_order_items(message, purchased_items)
+            if matches:
+                matched_order_id = matches[0]["order_id"]
+                order = next((entry for entry in orders if entry["id"] == matched_order_id), None)
+            else:
+                order = orders[0] if orders else None
+            if order:
+                order_date = order["order_date"].strftime("%d %b %Y") if order.get("order_date") else "recently"
+                product_names = product_name_summary(order["items"])
+                result["reply"] = (
+                    f"Your {product_names} order, placed {order_date}, is currently "
+                    f"{str(order['status']).lower()}. Total: Rs {float(order['total_amount']):,.2f}."
+                )
+                result["products"] = serialize_chat_products(order["items"], 3)
+                result["action"] = {"label": "View products and delivery details", "url": url_for("order_history")}
+            else:
+                result["reply"] = "I could not find any purchased products on your account yet."
 
     elif intent == "checkout":
         if not session.get("user_id"):
@@ -1300,6 +1521,8 @@ def view_cart():
         purchased_orders[oid]["products"].append(item)
         purchased_orders[oid]["order_total"] += float(item["purchase_price"]) * int(item["quantity"])
     purchased_orders_list = list(purchased_orders.values())
+    for order in purchased_orders_list:
+        order["display_name"] = product_name_summary(order["products"])
     return render_template(
         "cart.html",
         cart_items=cart_items,
@@ -1407,9 +1630,13 @@ def checkout():
                     quantity=item["quantity"],
                 )
             conn.commit()
+        ordered_names = product_name_summary(cart_items)
         session["cart"] = []
         session.modified = True
-        flash(f"Order #{order_id} placed successfully! We will deliver to your address.")
+        flash(
+            f"Your {ordered_names} order was placed successfully. "
+            f"Support reference #{order_id}. We will deliver it to your address."
+        )
         return redirect(url_for("order_history"))
     return render_template("checkout.html", cart_items=cart_items, total=total)
 @app.route("/order_history")
@@ -1476,7 +1703,27 @@ def order_history():
                     "price": row["item_price"],
                 }
             )
-    return render_template("order_history.html", orders=orders)
+    for order in orders:
+        order["display_name"] = product_name_summary(order["order_items"])
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT st.id, st.issue_type, st.description, st.status,
+                   st.created_at, st.updated_at, p.name AS product_name
+            FROM SupportTickets st
+            LEFT JOIN Products p ON p.id = st.product_id
+            WHERE st.user_id = ?
+            ORDER BY st.created_at DESC, st.id DESC
+            """,
+            session["user_id"],
+        )
+        support_tickets = rows_to_dicts(cursor)
+    return render_template(
+        "order_history.html", orders=orders, support_tickets=support_tickets,
+        return_window_days=RETURN_WINDOW_DAYS,
+    )
 # ====================== ADMIN ROUTES ======================
 @app.route("/admin")
 def admin_dashboard():
@@ -1527,10 +1774,12 @@ def admin_orders():
                     o.id, o.total_amount, o.order_date, o.status,
                     o.address, o.phone,
                     u.name AS user_name, u.email AS user_email,
-                    COUNT(oi.id) AS item_count
+                    ISNULL(SUM(oi.quantity), 0) AS item_count,
+                    STRING_AGG(p.name, ', ') AS product_names
                 FROM Orders o
                 JOIN Users u ON o.user_id = u.id
                 LEFT JOIN OrderItems oi ON o.id = oi.order_id
+                LEFT JOIN Products p ON p.id = oi.product_id
                 WHERE o.status = ?
                 GROUP BY o.id, o.total_amount, o.order_date, o.status,
                          o.address, o.phone, u.name, u.email
@@ -1543,10 +1792,12 @@ def admin_orders():
                     o.id, o.total_amount, o.order_date, o.status,
                     o.address, o.phone,
                     u.name AS user_name, u.email AS user_email,
-                    COUNT(oi.id) AS item_count
+                    ISNULL(SUM(oi.quantity), 0) AS item_count,
+                    STRING_AGG(p.name, ', ') AS product_names
                 FROM Orders o
                 JOIN Users u ON o.user_id = u.id
                 LEFT JOIN OrderItems oi ON o.id = oi.order_id
+                LEFT JOIN Products p ON p.id = oi.product_id
                 GROUP BY o.id, o.total_amount, o.order_date, o.status,
                          o.address, o.phone, u.name, u.email
                 ORDER BY o.order_date DESC
@@ -1632,6 +1883,9 @@ def delete_user(user_id):
         cursor = conn.cursor()
         cursor.execute("SELECT DISTINCT product_id FROM Reviews WHERE user_id = ?", user_id)
         affected_product_ids = [row[0] for row in cursor.fetchall()]
+        # Support cases reference the customer/order/product, so remove them
+        # before deleting the customer's transactional records.
+        cursor.execute("DELETE FROM SupportTickets WHERE user_id = ?", user_id)
         cursor.execute(
             "DELETE oi FROM OrderItems oi JOIN Orders o ON oi.order_id = o.id WHERE o.user_id = ?",
             user_id,
@@ -1644,6 +1898,53 @@ def delete_user(user_id):
         conn.commit()
     flash(f"User {user['email']} and all related data were deleted.")
     return redirect(url_for("admin_users"))
+@app.route("/admin/support")
+def admin_support():
+    if not admin_required():
+        return redirect(url_for("login"))
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT st.id, st.issue_type, st.description, st.status,
+                   st.created_at, st.updated_at,
+                   u.name AS user_name, u.email AS user_email,
+                   p.name AS product_name
+            FROM SupportTickets st
+            JOIN Users u ON u.id = st.user_id
+            LEFT JOIN Products p ON p.id = st.product_id
+            ORDER BY
+                CASE st.status WHEN 'Open' THEN 0 WHEN 'In Review' THEN 1 ELSE 2 END,
+                st.created_at DESC
+            """
+        )
+        tickets = rows_to_dicts(cursor)
+    return render_template("admin/support.html", tickets=tickets)
+
+
+@app.route("/admin/support/<int:ticket_id>/status", methods=["POST"])
+def update_support_status(ticket_id):
+    if not admin_required():
+        return redirect(url_for("login"))
+    status = request.form.get("status", "").strip()
+    valid_statuses = {"Open", "In Review", "Resolved", "Rejected"}
+    if status not in valid_statuses:
+        flash("Invalid support-case status.")
+        return redirect(url_for("admin_support"))
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE SupportTickets SET status = ?, updated_at = GETDATE() WHERE id = ?",
+            status, ticket_id,
+        )
+        if cursor.rowcount == 0:
+            flash("Support case not found.")
+        else:
+            conn.commit()
+            flash(f"Return case RTN-{ticket_id:06d} updated to {status}.")
+    return redirect(url_for("admin_support"))
+
+
 @app.route("/admin/reviews")
 def admin_reviews():
     if not admin_required():
@@ -1816,6 +2117,9 @@ def delete_product(product_id):
         return redirect(url_for("login"))
     with get_db_connection() as conn:
         cursor = conn.cursor()
+        # Keep historical support cases readable even if a catalog item is
+        # retired; the ticket description remains while the optional FK clears.
+        cursor.execute("UPDATE SupportTickets SET product_id = NULL WHERE product_id = ?", product_id)
         cursor.execute("DELETE FROM Reviews WHERE product_id = ?", product_id)
         cursor.execute("DELETE FROM Products WHERE id = ?", product_id)
         conn.commit()

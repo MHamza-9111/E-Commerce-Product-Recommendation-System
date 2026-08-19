@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Return & Support Cases{% endblock %}
+
+{% block content %}
+<div class="section-heading mt-0">
+    <div>
+        <h2 class="mb-1">Return & Support Cases</h2>
+        <p class="text-muted mb-0">Review actionable cases created by customers through ApBot.</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-dark btn-sm">Dashboard</a>
+</div>
+
+{% if tickets %}
+<div class="shop-surface overflow-hidden">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead style="background:var(--shop-soft);">
+                <tr>
+                    <th class="ps-4">Case</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Issue</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th class="pe-4">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td class="ps-4 fw-800">RTN-{{ '%06d'|format(ticket.id) }}</td>
+                    <td>
+                        <div class="fw-700">{{ ticket.user_name }}</div>
+                        <div class="small text-muted">{{ ticket.user_email }}</div>
+                    </td>
+                    <td class="fw-600">{{ ticket.product_name or 'Retired product' }}</td>
+                    <td><span class="badge text-bg-light">{{ ticket.issue_type|replace('_', ' ')|title }}</span></td>
+                    <td style="min-width:250px;max-width:380px;">{{ ticket.description }}</td>
+                    <td class="small text-muted">{{ ticket.created_at.strftime('%d %b %Y, %I:%M %p') if ticket.created_at else '—' }}</td>
+                    <td class="pe-4">
+                        <form method="POST" action="{{ url_for('update_support_status', ticket_id=ticket.id) }}" class="d-flex gap-2">
+                            <select class="form-select form-select-sm" name="status" aria-label="Status for case RTN-{{ '%06d'|format(ticket.id) }}">
+                                {% for status in ['Open', 'In Review', 'Resolved', 'Rejected'] %}
+                                <option value="{{ status }}" {% if ticket.status == status %}selected{% endif %}>{{ status }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary btn-sm" type="submit">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="shop-surface p-5 text-center">
+    <h5>No support cases</h5>
+    <p class="text-muted mb-0">Cases opened through ApBot will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}
