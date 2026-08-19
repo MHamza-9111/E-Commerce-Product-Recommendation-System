@@ -117,6 +117,37 @@
     </div>
 </section>
 
+{% if active_sale and sale_products %}
+<section class="sale-showcase" id="azaadi-sale" aria-labelledby="sale-heading" data-reveal>
+    <div class="sale-showcase-copy">
+        <span class="sale-kicker">14 August celebration</span>
+        <h2 id="sale-heading">{{ active_sale.name }}</h2>
+        <p>{{ active_sale.description }}</p>
+        <div class="sale-showcase-meta">
+            <span>Up to <strong>{{ active_sale.max_discount }}% off</strong></span>
+            <span>Ends {{ active_sale.ends_on.strftime('%d %B') }}</span>
+            <span><strong>Discount automatically applied</strong></span>
+        </div>
+    </div>
+    <a href="#sale-products" class="btn btn-light">Explore offers</a>
+</section>
+
+<section id="sale-products" aria-labelledby="sale-products-heading">
+    <div class="section-heading">
+        <div>
+            <span class="section-eyebrow">Limited-time savings</span>
+            <h2 id="sale-products-heading">Azaadi Sale picks</h2>
+            <p class="section-heading-copy">Different discounts across selected products while stocks last.</p>
+        </div>
+    </div>
+    <div class="row g-3 g-xl-4">
+        {% for product in sale_products %}
+            {{ product_card(product, 'col-sm-6 col-lg-4') }}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 {% if session.user_id %}
 <section id="recommended" aria-labelledby="recommended-heading">
     <div class="section-heading">

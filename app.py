@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import hashlib
 import os
 import re
@@ -31,6 +31,48 @@ ALLOWED_PROFILE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 ALLOWED_PRODUCT_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PRODUCT_UPLOAD_FOLDER"], exist_ok=True)
+
+# Seasonal promotion used across the storefront, checkout and ApBot. Different
+# products receive different discounts while the original catalog price remains
+# available for comparison. The promotion becomes active every August.
+AZAADI_SALE = {
+    "name": "Azaadi Sale",
+    "headline": "Celebrate freedom with smarter savings",
+    "description": "Limited-time savings on selected electronics, home, sports and book essentials.",
+    "code": "AZAADI14",
+    "discounts": {
+        1: 25,
+        2: 20,
+        3: 15,
+        14: 18,
+        31: 30,
+        42: 22,
+        57: 20,
+        61: 25,
+        87: 14,
+        91: 18,
+    },
+}
+
+
+def get_active_sale():
+    """Return the active seasonal promotion, or None outside August."""
+    today = date.today()
+    if today.month != 8:
+        return None
+    return {
+        **AZAADI_SALE,
+        "ends_on": date(today.year, 8, 31),
+        "max_discount": max(AZAADI_SALE["discounts"].values()),
+    }
+
+
+@app.context_processor
+def inject_storefront_promotion():
+    """Make promotion information available to every Jinja template."""
+    return {"active_sale": get_active_sale()}
+
+
 @app.errorhandler(404)
 def handle_not_found(e):
     flash("That page doesn't exist.")
@@ -189,7 +231,7 @@ def get_all_products(limit=None):
         products = rows_to_dicts(cursor)
     # Resolve effective image URL
     for p in products:
-        p["image_url"] = resolve_product_image(p)
+        prepare_product(p)
     return products
 def get_product_by_id(product_id):
     with get_db_connection() as conn:
@@ -197,7 +239,7 @@ def get_product_by_id(product_id):
         cursor.execute("SELECT * FROM Products WHERE id = ?", product_id)
         product = row_to_dict(cursor, cursor.fetchone())
     if product:
-        product["image_url"] = resolve_product_image(product)
+        prepare_product(product)
     return product
 def resolve_product_image(product):
     """Return the primary display image (used for cards/listings)."""
@@ -209,6 +251,29 @@ def resolve_product_image(product):
     image_url = product.get("image_url") or ""
     first_url = image_url.split(",")[0].strip() if image_url else ""
     return first_url or "https://placehold.co/400x400/f1f5f9/94a3b8?text=No+Image"
+
+
+def apply_sale_pricing(product):
+    """Add original/sale prices without changing the stored catalog price."""
+    original_price = float(product.get("price") or 0)
+    sale = get_active_sale()
+    discount = sale["discounts"].get(int(product.get("id") or 0), 0) if sale else 0
+    product["original_price"] = original_price
+    product["discount_percent"] = discount
+    product["on_sale"] = discount > 0
+    product["sale_name"] = sale["name"] if discount else None
+    product["sale_price"] = round(original_price * (1 - discount / 100), 2) if discount else original_price
+    return product
+
+
+def prepare_product(product):
+    """Attach the effective image and active promotional price to a product."""
+    if not product:
+        return product
+    product["image_url"] = resolve_product_image(product)
+    return apply_sale_pricing(product)
+
+
 def get_all_product_images(product):
     """Return ordered list of all image URLs for the gallery on product detail page."""
     images = []
@@ -333,7 +398,7 @@ def get_customer_purchased_items(user_id):
         )
         items = rows_to_dicts(cursor)
     for item in items:
-        item["image_url"] = resolve_product_image(item)
+        prepare_product(item)
     return items
 def get_purchased_product_ids(user_id):
     """Return set of product IDs from DELIVERED orders only."""
@@ -397,7 +462,7 @@ def search_and_filter_products(
         cursor.execute(sql, params)
         products = rows_to_dicts(cursor)
     for p in products:
-        p["image_url"] = resolve_product_image(p)
+        prepare_product(p)
     return products
 
 
@@ -447,9 +512,22 @@ def get_products_by_ids(pid_list):
         cursor.execute(f"SELECT * FROM Products WHERE id IN ({placeholders})", pid_list)
         products = rows_to_dicts(cursor)
     for p in products:
-        p["image_url"] = resolve_product_image(p)
+        prepare_product(p)
     product_map = {p["id"]: p for p in products}
     return [product_map[pid] for pid in pid_list if pid in product_map]
+
+
+def get_sale_products(limit=6):
+    """Return in-stock products included in the active seasonal sale."""
+    sale = get_active_sale()
+    if not sale:
+        return []
+    products = get_products_by_ids(list(sale["discounts"]))
+    products = [product for product in products if product.get("stock", 0) > 0 and product.get("on_sale")]
+    products.sort(key=lambda product: (-product["discount_percent"], product["sale_price"]))
+    return products[:limit]
+
+
 def get_content_based_recommendations(product, limit=4, reason="Similar products"):
     """Content-based KNN recommendations.
     Improvement: uses the blended feature matrix (TF-IDF + normalised rating/price)
@@ -471,7 +549,7 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
             )
             products = rows_to_dicts(cursor)
         for p in products:
-            p["image_url"] = resolve_product_image(p)
+            prepare_product(p)
             p["rec_reason"] = "More in this category"
         return products
     try:
@@ -498,7 +576,7 @@ def get_content_based_recommendations(product, limit=4, reason="Similar products
         )
         products = rows_to_dicts(cursor)
     for p in products:
-        p["image_url"] = resolve_product_image(p)
+        prepare_product(p)
         p["rec_reason"] = "Similar pick"
     return products
 def get_collaborative_recommendations(user_id, limit=4):
@@ -541,7 +619,7 @@ def get_collaborative_recommendations(user_id, limit=4):
         )
         products = rows_to_dicts(cursor)
     for p in products:
-        p["image_url"] = resolve_product_image(p)
+        prepare_product(p)
         p["rec_reason"] = "Recommended for you"
     return products
 def get_personalized_recommendations(limit=4):
@@ -645,8 +723,13 @@ def index():
     featured = get_all_products(6)
     trending = get_trending_products(4)
     recommended = get_personalized_recommendations(4)
+    sale_products = get_sale_products(6)
     return render_template(
-        "index.html", products=featured, trending=trending, recommended=recommended
+        "index.html",
+        products=featured,
+        trending=trending,
+        recommended=recommended,
+        sale_products=sale_products,
     )
 @app.route("/products")
 def products():
@@ -768,9 +851,13 @@ def serialize_chat_products(products, limit=3):
             "name": product["name"],
             "brand": product.get("brand") or "",
             "category": product.get("category") or "",
-            "price": float(product["price"]),
+            "price": float(product.get("sale_price") or product["price"]),
+            "original_price": float(product.get("original_price") or product["price"]),
+            "discount_percent": int(product.get("discount_percent") or 0),
+            "sale_name": product.get("sale_name") or "",
             "rating": float(product.get("rating") or 0),
             "stock": int(product.get("stock") or 0),
+            "description": (product.get("description") or "")[:180],
             "image_url": product.get("image_url") or resolve_product_image(product),
             "url": url_for("product_detail", product_id=product["id"]),
             "reason": product.get("rec_reason") or "",
@@ -826,7 +913,7 @@ def find_products_for_chat(message, limit=3):
         products = rows_to_dicts(cursor)
 
     for product in products:
-        product["image_url"] = resolve_product_image(product)
+        prepare_product(product)
     return products[:limit]
 
 
@@ -850,22 +937,19 @@ def chatbot_api():
             "confidence": 0
         }), 400
 
-    # Extract conversation history sent by the frontend (last N turns).
-    # Each entry is expected to be {"role": "user"|"bot", "content": str,
-    # "intent": str (bot turns only)}.  We cap at 6 entries for safety.
-    raw_history = data.get("history", [])
-    history = []
-    if isinstance(raw_history, list):
-        for turn in raw_history[-6:]:
-            if isinstance(turn, dict) and turn.get("role") in {"user", "bot"}:
-                history.append(turn)
-
-    result = chatbot_reply(message, history=history)
+    result = chatbot_reply(message)
     intent = result.get("intent", "unknown")
     result["reply"] = result.get("reply", "").replace("Cartify", "ZiloCart")
     result["products"] = []
 
-    if intent == "recommendation":
+    if intent == "unknown":
+        result["reply"] = (
+            "That topic is outside my shopping support area. I can help you "
+            "discover products, compare options, find current offers, track an "
+            "order, or get help with delivery, returns and checkout."
+        )
+
+    elif intent == "recommendation":
         if session.get("user_id"):
             products = get_personalized_recommendations(3)
             result["reply"] = "Here are a few products selected for you."
@@ -888,8 +972,16 @@ def chatbot_api():
         result["products"] = serialize_chat_products(products)
 
     elif intent == "offers":
-        products = search_and_filter_products(sort_by="price_low")[:3]
-        result["reply"] = "Here are some of the most affordable products currently available."
+        products = get_sale_products(3)
+        sale = get_active_sale()
+        if products and sale:
+            result["reply"] = (
+                f"The {sale['name']} is live with up to {sale['max_discount']}% off selected products. "
+                f"The offer runs until {sale['ends_on'].strftime('%d %B')}."
+            )
+        else:
+            products = search_and_filter_products(sort_by="price_low")[:3]
+            result["reply"] = "There is no seasonal sale right now, but these are some affordable picks."
         result["products"] = serialize_chat_products(products)
 
     elif intent == "cart":
@@ -1153,13 +1245,20 @@ def add_to_cart(product_id):
                 flash(f"Only {product.get('stock', 100)} unit(s) of '{product['name']}' are available.")
                 return redirect(request.referrer or url_for("product_detail", product_id=product_id))
             item["quantity"] += 1
+            item["price"] = float(product.get("sale_price") or product["price"])
+            item["original_price"] = float(product.get("original_price") or product["price"])
+            item["discount_percent"] = int(product.get("discount_percent") or 0)
+            item["sale_name"] = product.get("sale_name")
             break
     else:
         cart.append(
             {
                 "id": product["id"],
                 "name": product["name"],
-                "price": float(product["price"]),
+                "price": float(product.get("sale_price") or product["price"]),
+                "original_price": float(product.get("original_price") or product["price"]),
+                "discount_percent": int(product.get("discount_percent") or 0),
+                "sale_name": product.get("sale_name"),
                 "quantity": 1,
             }
         )
@@ -1175,6 +1274,16 @@ def view_cart():
     if not login_required():
         return redirect(url_for("login"))
     cart_items = session.get("cart", [])
+    # Refresh active promotional prices before displaying the cart.
+    for item in cart_items:
+        product = get_product_by_id(item["id"])
+        if product:
+            item["price"] = float(product.get("sale_price") or product["price"])
+            item["original_price"] = float(product.get("original_price") or product["price"])
+            item["discount_percent"] = int(product.get("discount_percent") or 0)
+            item["sale_name"] = product.get("sale_name")
+    session["cart"] = cart_items
+    session.modified = True
     total = sum(item["price"] * item["quantity"] for item in cart_items)
     flat_items = get_customer_purchased_items(session["user_id"])
     purchased_orders = {}
@@ -1246,6 +1355,16 @@ def checkout():
     if not cart_items:
         flash("Your cart is empty.")
         return redirect(url_for("view_cart"))
+    # Reconfirm sale prices when checkout is opened directly.
+    for item in cart_items:
+        product = get_product_by_id(item["id"])
+        if product:
+            item["price"] = float(product.get("sale_price") or product["price"])
+            item["original_price"] = float(product.get("original_price") or product["price"])
+            item["discount_percent"] = int(product.get("discount_percent") or 0)
+            item["sale_name"] = product.get("sale_name")
+    session["cart"] = cart_items
+    session.modified = True
     total = sum(item["price"] * item["quantity"] for item in cart_items)
     if request.method == "POST":
         address = request.form.get("address", "").strip()

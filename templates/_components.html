@@ -7,7 +7,9 @@
                  loading="lazy"
                  onerror="this.src='https://placehold.co/500x500/f3f4f6/98a2b3?text=No+Image'">
             <span class="product-badge product-badge-category">{{ product.category }}</span>
-            {% if product.get('rec_reason') %}
+            {% if product.get('on_sale') %}
+                <span class="product-badge product-badge-sale">{{ product.discount_percent }}% OFF</span>
+            {% elif product.get('rec_reason') %}
                 <span class="product-badge product-badge-reason" title="{{ product.rec_reason }}">{{ product.rec_reason }}</span>
             {% elif product.get('stock', 100) < 1 %}
                 <span class="product-badge product-badge-oos">Out of stock</span>
@@ -33,8 +35,14 @@
 
             <div class="d-flex align-items-end justify-content-between gap-2 mt-auto pt-1">
                 <div>
-                    <span class="d-block text-muted" style="font-size:.6rem;font-weight:700;">PRICE</span>
-                    <span class="price">Rs {{ "%.0f"|format(product.price) }}</span>
+                    {% if product.get('on_sale') %}
+                        <span class="d-block sale-label">{{ product.sale_name }}</span>
+                        <span class="original-price">Rs {{ "%.0f"|format(product.original_price) }}</span>
+                        <span class="price sale-price">Rs {{ "%.0f"|format(product.sale_price) }}</span>
+                    {% else %}
+                        <span class="d-block text-muted" style="font-size:.6rem;font-weight:700;">PRICE</span>
+                        <span class="price">Rs {{ "%.0f"|format(product.price) }}</span>
+                    {% endif %}
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">Details</a>

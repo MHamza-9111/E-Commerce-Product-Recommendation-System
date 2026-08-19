@@ -21,8 +21,14 @@
         <tbody>
             {% for item in cart_items %}
             <tr>
-                <td class="ps-4 fw-600">{{ item.name }}</td>
-                <td class="price">Rs {{ "%.2f"|format(item.price) }}</td>
+                <td class="ps-4 fw-600">
+                    {{ item.name }}
+                    {% if item.get('discount_percent', 0) %}<span class="cart-sale-tag">{{ item.sale_name }} · {{ item.discount_percent }}% off</span>{% endif %}
+                </td>
+                <td>
+                    {% if item.get('discount_percent', 0) %}<span class="original-price d-block">Rs {{ "%.2f"|format(item.original_price) }}</span>{% endif %}
+                    <span class="price">Rs {{ "%.2f"|format(item.price) }}</span>
+                </td>
                 <td>
                     <form method="POST" action="{{ url_for('update_cart', product_id=item.id) }}" class="d-flex align-items-center gap-1" data-cart-form>
                         <div class="quantity-control">

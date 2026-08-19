@@ -630,7 +630,11 @@
         <div class="container d-flex align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2">
                 <span class="announcement-dot" aria-hidden="true"></span>
+                {% if active_sale %}
+                <a class="announcement-sale-link" href="{{ url_for('index') }}#azaadi-sale"><span class="announcement-highlight">{{ active_sale.name }} is live.</span> Save up to {{ active_sale.max_discount }}% on selected products.</a>
+                {% else %}
                 <span><span class="announcement-highlight">Smarter shopping starts here.</span> Recommendations shaped around you.</span>
+                {% endif %}
             </div>
             <div class="announcement-perks" aria-label="Store benefits">
                 <span>

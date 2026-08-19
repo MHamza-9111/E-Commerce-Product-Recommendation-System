@@ -68,6 +68,7 @@
                     <span class="checkout-item-quantity">{{ item.quantity }}×</span>
                     <div class="flex-grow-1 min-w-0">
                         <div class="fw-700 text-truncate" style="font-size:.79rem;">{{ item.name }}</div>
+                        {% if item.get('discount_percent', 0) %}<div class="sale-checkout-note">{{ item.sale_name }} · {{ item.discount_percent }}% off</div>{% endif %}
                         <div class="text-muted" style="font-size:.65rem;">Rs {{ "%.2f"|format(item.price) }} each</div>
                     </div>
                     <div class="price" style="font-size:.78rem;">Rs {{ "%.2f"|format(item.price * item.quantity) }}</div>

@@ -130,7 +130,18 @@
         {% endif %}
         <h2 class="fw-bold">{{ product.name }}</h2>
         <p class="product-meta mb-2">{{ product.brand }}</p>
+        {% if product.get('on_sale') %}
+        <div class="product-sale-panel mb-3">
+            <div><span class="sale-event-name">{{ product.sale_name }}</span><span class="sale-discount-pill">{{ product.discount_percent }}% off</span></div>
+            <div class="d-flex align-items-baseline gap-2 mt-2">
+                <span class="original-price product-original-price">Rs {{ "%.2f"|format(product.original_price) }}</span>
+                <h3 class="price mb-0">Rs {{ "%.2f"|format(product.sale_price) }}</h3>
+            </div>
+            {% if active_sale %}<small>Offer ends {{ active_sale.ends_on.strftime('%d %B %Y') }}</small>{% endif %}
+        </div>
+        {% else %}
         <h3 class="price mb-3">Rs {{ "%.2f"|format(product.price) }}</h3>
+        {% endif %}
         <div class="mb-3">
             <span class="rating-stars" aria-label="{{ "%.1f"|format(product.rating) }} out of 5 stars">
                 {% for star in range(1, 6) %}

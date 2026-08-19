@@ -1068,3 +1068,53 @@ textarea.form-control { min-height: auto; }
     color: var(--category-color, var(--shop-brand-dark)) !important;
     transform: translateX(2px);
 }
+
+/* ===== Seasonal promotion ===== */
+.announcement-sale-link { color: rgba(255,255,255,.78); text-decoration: none; }
+.announcement-sale-link:hover { color: #fff; }
+.product-badge-sale {
+    background: linear-gradient(135deg,#138a55,#0d6d43);
+    box-shadow: 0 5px 14px rgba(19,138,85,.22);
+    color: #fff;
+    left: auto;
+    right: .7rem;
+}
+.sale-label { color: #138a55; font-size: .58rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.original-price { color: #98a2b3; font-size: .68rem; margin-right: .32rem; text-decoration: line-through; }
+.sale-price { color: #138a55; }
+.sale-showcase {
+    align-items: center;
+    background:
+        radial-gradient(circle at 90% 10%,rgba(255,255,255,.17),transparent 14rem),
+        linear-gradient(120deg,#075f3d,#0d8050 58%,#e68a19 140%);
+    border-radius: 25px;
+    box-shadow: 0 22px 50px rgba(7,95,61,.17);
+    color: #fff;
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    margin-top: 3rem;
+    overflow: hidden;
+    padding: clamp(1.5rem,4vw,2.5rem);
+    position: relative;
+}
+.sale-showcase-copy { max-width: 720px; position: relative; z-index: 1; }
+.sale-kicker { color: #ffd386; display: block; font-size: .64rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+.sale-showcase h2 { font-size: clamp(2rem,5vw,3.6rem); font-weight: 900; letter-spacing: -.06em; margin: .35rem 0 .45rem; }
+.sale-showcase p { color: rgba(255,255,255,.7); font-size: .82rem; line-height: 1.65; margin: 0; }
+.sale-showcase-meta { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1rem; }
+.sale-showcase-meta span { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.13); border-radius: 999px; color: rgba(255,255,255,.75); font-size: .62rem; padding: .38rem .6rem; }
+.sale-showcase-meta strong { color: #fff; }
+.sale-showcase > .btn { flex: 0 0 auto; position: relative; z-index: 1; }
+.product-sale-panel { background: linear-gradient(110deg,#edf9f3,#fff9ec); border: 1px solid rgba(19,138,85,.18); border-radius: 14px; padding: .9rem 1rem; }
+.sale-event-name { color: #0d7548; font-size: .68rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.sale-discount-pill { background: #138a55; border-radius: 999px; color: #fff; font-size: .6rem; font-weight: 850; margin-left: .55rem; padding: .28rem .5rem; }
+.product-original-price { font-size: .85rem; }
+.product-sale-panel small { color: #5c786b; display: block; font-size: .62rem; margin-top: .35rem; }
+.cart-sale-tag { background: #eaf8f1; border-radius: 999px; color: #0d7548; display: table; font-size: .58rem; font-weight: 800; margin-top: .25rem; padding: .2rem .45rem; }
+.sale-checkout-note { color: #138a55; font-size: .58rem; font-weight: 800; margin-top: .12rem; }
+
+@media (max-width:767.98px) {
+    .sale-showcase { align-items: flex-start; flex-direction: column; }
+    .sale-showcase > .btn { width: 100%; }
+}

@@ -176,3 +176,76 @@
 .apbot-product-details { align-items: center; display: flex; gap: 8px; justify-content: space-between; }
 .apbot-product-details b { color: var(--shop-price,#125f9f); font-size: 10px; }
 .apbot-product-details span { color: #b26a00; font-size: 8px; font-weight: 700; }
+
+/* Sale details shown on product cards */
+.apbot-product-sale { align-items: center; display: flex; gap: 5px; margin-top: 2px; }
+.apbot-product-old-price { color: #98a2b3; font-size: 8px; text-decoration: line-through; }
+.apbot-product-discount { background: #eaf8f1; border-radius: 999px; color: #0d7548; font-size: 7px; font-weight: 850; padding: 2px 4px; }
+.apbot-product-description { color: #667085; display: -webkit-box; font-size: 8px; line-height: 1.4; margin: 0 0 5px; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+/* Compact welcome bubble shown on each page load */
+.apbot-nudge {
+    animation: apbotNudgeIn .35s cubic-bezier(.2,.8,.2,1) both;
+    background: #fff;
+    border: 1px solid var(--shop-line,#e4e7ec);
+    border-radius: 17px;
+    bottom: 72px;
+    box-shadow: 0 18px 48px rgba(16,24,40,.17);
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    width: 315px;
+}
+.apbot-nudge[hidden] { display: none; }
+.apbot-nudge-main {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    padding: 12px 42px 12px 12px;
+    text-align: left;
+    width: 100%;
+}
+.apbot-nudge-main:hover { background: #fafbfc; }
+.apbot-nudge-logo {
+    align-items: center;
+    background: #101828;
+    border-radius: 11px;
+    display: flex;
+    flex: 0 0 auto;
+    height: 40px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 3px;
+    width: 40px;
+}
+.apbot-nudge-logo img { height: 100%; object-fit: contain; width: 100%; }
+.apbot-nudge-copy { display: block; min-width: 0; }
+.apbot-nudge-copy strong { color: var(--shop-ink,#101828); display: block; font-size: 11px; font-weight: 850; }
+.apbot-nudge-copy small { color: #667085; display: block; font-size: 9px; line-height: 1.45; margin-top: 2px; }
+.apbot-nudge-close {
+    align-items: center;
+    background: #f2f4f7;
+    border: 0;
+    border-radius: 8px;
+    color: #667085;
+    cursor: pointer;
+    display: flex;
+    height: 26px;
+    justify-content: center;
+    position: absolute;
+    right: 9px;
+    top: 9px;
+    width: 26px;
+}
+.apbot-nudge-close:hover { background: #e4e7ec; color: #101828; }
+.apbot-nudge-close .ui-icon { height: 13px; width: 13px; }
+@keyframes apbotNudgeIn {
+    from { opacity: 0; transform: translateY(10px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width:575px) {
+    .apbot-nudge { max-width: calc(100vw - 28px); width: 310px; }
+}

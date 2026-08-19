@@ -3,10 +3,21 @@
      id="apbot"
      data-api-url="{{ url_for('chatbot_api') }}"
      data-products-url="{{ url_for('products') }}"
+     data-sale-url="{{ url_for('index') }}#azaadi-sale"
      data-orders-url="{{ url_for('order_history') }}"
      data-cart-url="{{ url_for('view_cart') }}"
      data-checkout-url="{{ url_for('checkout') }}"
      data-profile-url="{{ url_for('profile') }}">
+    <div class="apbot-nudge" id="apbotNudge" role="status" aria-live="polite" hidden>
+        <button type="button" class="apbot-nudge-main" id="apbotNudgeOpen" aria-label="Open ApBot">
+            <span class="apbot-nudge-logo"><img src="{{ url_for('static', filename='logo.png') }}" alt=""></span>
+            <span class="apbot-nudge-copy"><strong>Welcome to ZiloCart</strong><small>Hi, I’m ApBot. How can I help you today?</small></span>
+        </button>
+        <button type="button" class="apbot-nudge-close" id="apbotNudgeClose" aria-label="Dismiss welcome message">
+            <svg class="ui-icon"><use href="#icon-x"></use></svg>
+        </button>
+    </div>
+
     <section class="apbot-window" id="apbotWindow" aria-label="ApBot shopping assistant" hidden>
         <div class="apbot-panel">
             <header class="apbot-header" id="apbotDragHandle" title="Drag to move">
@@ -30,8 +41,8 @@
             <div class="apbot-messages" id="apbotMessages" aria-live="polite">
                 <div class="apbot-welcome">
                     <span class="apbot-welcome-icon"><img src="{{ url_for('static', filename='logo.png') }}" alt=""></span>
-                    <strong>How can we help?</strong>
-                    <p>Ask about products, recommendations, orders, delivery, returns or checkout.</p>
+                    <strong>Hi, I’m ApBot</strong>
+                    <p>How can I help you today? Ask me to find products, explain details, recommend options, track orders or guide you through checkout.</p>
                 </div>
             </div>
 
